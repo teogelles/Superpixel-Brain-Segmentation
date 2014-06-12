@@ -1,0 +1,157 @@
+Notes on SPM 8
+As directed by the wonderful Chris Magnano
+
+Realign
+-------
+Estimate does all of the math but it doesn't do anything
+Reslice takes the maths and then actually applies tit to the image
+It's useful to have that file saved because then you can realign a lot of images
+ -- say you have 50 images that you do the math on, you can reasonably assume
+ -- that the 51 will not significantly affect the math, so you can merely apply
+ -- the calculations that you have previously done
+There are SPM tutorials on YouTube by Andrew Jahn, he also has a blog with posts
+on SPM that we can look up and are a good intro (random grad student)
+Select images from:
+       -- Actual ADNI images can be found acmi/fmri/AD_T1,CN_T1,MCI_T1 which are
+       -- the three catagories for the three different types of patients
+       -- There are also nifti stripped images but there are poorly segmented
+       -- images mixed in with the lot, so it might not be fully raliable to
+       -- just parse straight through -- basically all the ones with the stupid
+       -- prefixes are the ones that we want to avoid
+       -- IBSR are the good images
+Just doing check registration allows you to look at a bunch of images at once
+sometimes the images in SPM are a little messed up since the metadata is a lit
+tle bit wrong, but when you load the matrices into MATLAB they turn out just 
+fine
+
+IBSR - public database for manually segmented brain images for training set
+     - if we loose them, we can easily just go back into google and kindly ask
+       for them again
+
+If you click on the top in the batch editor, it explains what is actually 
+happening
+
+The graphs that pop up are just telling you how well internally the things just
+went
+
+Results stored in the same directory you got the images in with your custom
+prefixes
+
+Keeps the first image constant and then changes the other images to match
+
+Everything else in the spatial preprocessing works similar to realign
+
+You can actually do everything at once by adding in different modules into the
+batch editor, by clicking dependency in the  other modules, you can pipe the
+results of one module into another
+
+Realign just puts the iamges back into the space of the first image whereas
+coregister intentionally forces all of the other images to be in the space and
+orientation of the first image
+
+Coregister
+----------
+You have a reference image that everything else is trying to fit into
+The source image is what we fit to the reference (must be an MRI), but the other
+images are ignored until they need to be giggled to fit the reference, and these
+do not have to be MRI images (different algo)
+
+Save the function which we can then edit the MATLAB script since the GUI doens't
+really let us do exactly what we want, we then copied the functions of the job
+file (automatically saved along with the script) and put that into a function
+inside of the main file, and then you have to replace one of the inputs with the
+parameter that you are passing into your new function
+
+An actual example of how to do this, we should looke at
+ -- chris13/scripts/batchattempt1
+ - Before this, there was already a SPM segmentation of all the patient files
+ - which saves nice mat files, including the segsn.mat and the inverted one
+ - which does nice spatial normalization, and invert allows us to get the image
+ - back into its native space
+ - Those normalizations allow us to put the ATLAS file back into the MRI space
+ - of the original image
+
+Some ATLASes saved in the acmi/fmri/altAtlas folder, one for each patient
+The ATLAS also grayscales the voxels, which are on a scale of 1-116 for each
+anatomical region in the brain. This then allows people to identify brain
+segments so that people can identify parts of the brain in the MRI space by
+comparing it to the ATLAS space
+
+What Chris did:
+     Tissue segmentation with CRF then anatomical segmentation with SPM
+     Looked at moving the ATLAS into the MRI space instead of moving the MRI
+     into the ATLAS space
+
+~600 ADNI images
+18 IBSR images
+
+When you do a SPM seg
+ c1 white matter
+ c2 gray matter
+ c3 cerebral spinal fluid
+
+When you do the SPM seg, it does all the realign and such included, but when
+we're doing things manually, then we'll have to do the realign stuff (plus for
+the IBSR files, which have much worse meta data, we have to do the realign
+manually beforehand)
+
+Display is better for one image, but it can only do one image
+
+c1 iamges give you a probability map of where the white matter would be
+ - If you want, you can manually go into MATLAB and view the three images
+(c1,c2,c3) into the same images so you can see it all side by side
+
+scripts/evalseg allows us to look at a segmented image and evaluate it compared
+to a ground truth image
+
+White mattle lesions in data/DHS/data in nifti images and white matter regions
+ - these are flair images, but we can ask badya about getting white matter
+ - lesion MRI scans to work with
+
+NITRC.org is where we can get all of our brain scan files, and they might have
+	  anatomical segmentation training files, but this was more basic than
+	  the atlas
+
+White matter lesion stuff is interesting (especially since the binary 
+      segmentation leans toward ignoring all lesions)
+So is using CRFs for doing anatomical segmentation
+
+
+
+
+
+
+Code Notes
+
+Pertinant files are /acmi/CRFGM_fastTune.m and /acmi/CRFGM_test.m and condor
+scripts
+Most other files are legacy
+
+/scratch/cmagnan1 directory
+  Consists of temp files created while running CRF script
+
+
+Script Arguments
+
+  CRFGM_fastTune:
+    General method is leave-one-out cross-validation
+    fold (int 1-5 for IBST): which of 5 folds for tuning to use
+    minIter (int) and maxIter(int): number of iterations to run for tuning
+    	    	      		    loop, which determines optimal number
+				    of iterations for leave-out image via
+				    5-fold
+
+				    Typical values: minIter: 200
+				    	    	    maxIter: 1000
+    leaveOut(int): the image which will eventually be used for testing
+
+     res(int): only use the res-th voxels (as in every other, every third)
+     	       	    	    	   	  
+					  Typical Value: 16 or 2 or 1
+
+
+
+
+Comparing UGM and SPM8
+
+	  look at eval_seg.m

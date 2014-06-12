@@ -1,0 +1,19 @@
+Swarthmore Summer 2014 CS Research
+Prof. Ameet Soni
+Students: Teo Gelles & Andrew Gilchrist-Scott
+Last Updated: 06/02/2014
+
+
+Directory: /acmi/summer2014
+
+This directory contains the code, scripts, and images relevant to our brain
+imaging research over the summer.  More general resources are located in
+/acmi
+
+
+
+Directory Listing:
+
+/scripts - Matlab scripts for tissue segmentation processing
+	   Currently mostly a copy of the work done by Christopher Magnano
+	   from Summer 2013

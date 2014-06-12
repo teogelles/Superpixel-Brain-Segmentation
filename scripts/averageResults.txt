@@ -1,0 +1,19 @@
+ Average Volume Overlap: 9.380551 87.131488 79.870913
+ Average Volume Overlap: 6.344256 82.631338 80.705654
+ Average Volume Overlap: 21.003101 82.020792 74.728369
+ Average Volume Overlap: 9.880788 88.230834 81.117350
+ Average Volume Overlap: 2.991819 54.409385 78.765745
+ Average Volume Overlap: 5.397568 80.254822 81.064626
+ Average Volume Overlap: 3.595755 51.188837 73.042585
+ Average Volume Overlap: 4.981371 76.173122 79.398858
+ Average Volume Overlap: 3.275534 51.848025 75.876879
+ Average Volume Overlap: 9.264535 86.991421 80.489494
+ Average Volume Overlap: 11.611898 57.875120 70.519800
+ Average Volume Overlap: 3.173615 65.064791 80.858992
+ Average Volume Overlap: 11.817689 89.365688 82.405452
+ Average Volume Overlap: 6.000855 83.376140 81.057552
+ Average Volume Overlap: 15.702081 72.867998 72.738646
+ Average Volume Overlap: 12.610882 57.603617 69.894126
+ Average Volume Overlap: 3.204123 50.164119 75.836561
+ Average Volume Overlap: 17.045396 74.871096 74.440693
+

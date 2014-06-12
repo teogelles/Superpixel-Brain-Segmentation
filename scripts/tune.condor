@@ -1,0 +1,14 @@
+Universe = vanilla
+Executable = /acmi/chris13/scripts/tuneBash.sh
+InitialDir = /acmi/scripts
+Notification = Never
+getenv = True
+Log = /acmi/chris13/condorout/testFinLate3_7$(Process).log
+Error = /acmi/chris13/condorout/testFinLate3_7$(Process).err
+Output = /acmi/chris13/condorout/testFinLate3_7$(Process).out
+requirements = (SlotID == 3) && (Memory > 8000)
+
+Arguments = 3
+queue 
+Arguments = 7
+queue
