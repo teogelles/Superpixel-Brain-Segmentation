@@ -1,4 +1,6 @@
 %% CRFGM_test
+%Primarily authored by Chris Magnano
+%
 % Editors: Teo Gelles
 %          Andrew Gilchrist-Scott
 %
