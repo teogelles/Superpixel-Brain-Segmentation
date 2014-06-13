@@ -79,7 +79,7 @@ function iter = CRF_fastTune(fold,minIter,maxIter,leaveOut,res, usePriors)
     
     % Stochastic gradient descent training
     trainCRF(nExamples, examples, minIter, maxIter, leaveOut, training, ...
-             w);
+             w, pauses);
 end
 
 %% Stats Functions
@@ -1095,7 +1095,7 @@ end
 
 
 function trainCRF(nExamples, examples, minIter, maxIter, leaveOut, ...
-                  training, w)
+                  training, w, pauses)
     
     global dir paramDir restarting;
     

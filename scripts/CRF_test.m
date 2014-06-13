@@ -11,340 +11,76 @@
 
 
 function CRF_test(leaveOut,iterations,res,usePriors)
-    fold = leaveOut
-    %res is the resolution(as in use all voxels, 1 in 2 voxels, etc)
+    
     close all
-    pauses = 0; %turn pausing on/off
+    pauses = 0; %turn pausing on/off (used in makeInitPlots)
     plots = 0;
-    fold = fold + 1;
 
-    f = 1;
-    found = 0;
-    restarting = 0;
+    fold = leaveOut + 1; % Because the condor scripts start 1 step lower
     
-    %%makes temp dirs to store temp files
-    while ~found
-        dir = strcat('/scratch/tgelles1/summer2014/testing/', ...
-                     int2str(fold),'res',int2str(res),'num', ...
-                     int2str(f),'/'); %directory for temp files
-        paramDir = dir; %directory for parameter filesx
-        
-        if exist(paramDir, 'dir') || exist(dir, 'dir') 
-            rmdir(paramDir, 's')
-        end
-        break; % A hack that must be removed before the world ends
-        
-        
-        % if exist(paramDir, 'dir') || exist(dir, 'dir') 
-        %     f = f + 1;
-        % else
-        %     break;
-        % end
-    end
+    global dir paramDir restarting;
+    [dir, paramDir, restarting] = makeDirs(fold, leaveOut, res);
     
-    if f > 1
-        dir = strcat('/scratch/tgelles1/summer2014/testing/', ...
-                     int2str(fold),'res',int2str(res),'num', ...
-                     int2str(f-1),'/'); %directory for temp files
-        paramDir = dir; %directory for parameter files
-        restarting = 1;
-    else
-        mkdir(paramDir);
-    end
 
-
-    %% Initialization (FILE LOADING)
-    %[X, y, nExamples] =
-    %load_ibsr('/acmi/chris13/analyze_IB/20Normals_T1_brain/',
-    %'/acmi/chris13/20Normals_T1_seg/'); %Load IBSR_V1
-    [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/',res);
-    %Load IBSR_V2
-    %X is raw images, y is ground triuth segmented images,
-    %nExamples is num images
-    %[X, y, nExamples] = load_ADNI('/acmi/fmri/CN_T1/'); %Load ADNI cog normal
-
-
-    %% Leave One Out
-    testing = [fold];
-    if fold == 1
-        training = 2:nExamples;
-    elseif fold == nExamples
-        training = 1:(nExamples-1);
-    else
-        training = [1:(fold-1) (fold + 1):nExamples];
-    end
-
-    %training and testing are arrays of indexes into X and y
-    %telling which images to use
-
-    %% Initial Plots, doesn't really work that well, was for seeing images to make sure loading correctly
-    %MRI's
+    % Load IBSR Data
+    [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
+                                   res);
+    
+    % Get data for Cross Folding
+    [testing, training] = makeCrossFold(fold, nExamples);
+    
+    % Initial Plots
     if plots == 1
-        figure;
-        lenT = length(testing);
-        lenT = sqrt(lenT);
-        for j = 1:numel(testing)
-            subplot(lenT, lenT+1, j);
-            size(X{testing(j)})
-            i = testing(j);
-            imagesc(reshape((X{testing(j)}(:,:,floor(size(X{i},3)/2))), ...
-                            size(X{i},1),size(X{i},2))); %Should
-                                                         %not
-                                                         %hardcode
-                                                         %these
-            colormap gray
-        end
-        suptitle('MRI Images');
-        if pauses
-            fprintf('(paused)\n');
-            pause
-        end;
-        title('Original MRI');
-        
-        %Segmentations
-        figure;
-        lenT = length(testing);
-        lenT = sqrt(lenT);
-        for j = 1:numel(testing)
-            subplot(lenT, lenT+1, j);
-            i = testing(j);
-            imagesc(reshape((y{testing(j)}(:,:,floor(size(y{i},3)/2))), ...
-                            size(y{i},1),size(y{i},2)));
-            colormap gray
-        end
-        suptitle('Segmentation Truth');
-        if pauses
-            fprintf('(paused)\n');
-            pause
-        end
+        makeInitPlots(testing, X, y, pauses);
     end
-
-    %%Feature Generation
-
-    if restarting == 1
-        %Load everythin in
-    else
-        %% Make Average Neighbor intensity a feature
-        fprintf('\nCreating Neighborhood feature...');
-        nBors = make_nBors(X, nExamples);
-        % Making the cdist code optional since we need to deal with
-        % memory overflow with the SPM priors
-        if (~usePriors)
-            cDist = center_distance(X, nExamples); %distance to center
-                                                   %of image
-        end
-    end
-
-    %% Make X,y Into Correct Shape and correct Bias
-    sizes = zeros(nExamples);
-    for i=1:nExamples
-        [nRows,nCols,nSlices] = size(X{i});
-        sizes(i) = nRows*nCols*nSlices;
-    end
-
-    fprintf('\nMasking Zeros...');
-    [origX, origY, Zmask, X, y] = maskZeros(X, y, nExamples);
-
-    nStates = max(y{1}(:)); %assume y{1} has all states 
-    ZmaskFlat = cell(nExamples,1);
     
-    nPixelsArray = zeros(1, nExamples);
-
-    fprintf('\nReshaping Matricies');
-    for i=1:nExamples
-        fprintf('.');
-        nPixels = size(X{i},1);
-        nPixelsArray(i) = nPixels;
-        
-        y{i} = reshape(y{i},[1, 1 nPixels]);
-        X{i} = reshape(X{i},1,1,nPixels);
-        
-        if restarting == 0
-            nBors{i} = nBors{i}(Zmask{i});
-            nBors{i} = reshape(nBors{i},1,1,nPixels);
+    % Init Features
+    if restarting
+        %Load everything in if restarting 
+    else % if not restarting
+        % Make Average Neighbor intensity a feature
+        disp('Creating Neighborhood feature...');
+        nBors = make_nBors(X, nExamples);
+        cDist = NaN;
+        if ~usePriors % If results of spm8 are being used, there is
+                      % not enough memory on the swatcs computers
+                      % to use the cDist feature
             
-            if (~usePriors)
-                cDist{i} = cDist{i}(Zmask{i});
-                cDist{i} = reshape(cDist{i},1,1,nPixels);
-            end
-        end
-        
-        ZmaskFlat{i} = reshape(Zmask{i}, 1, 1, sizes(i));
-    end
-
-    %clear Zmask;
-    %we choose to use Zmask later, so it is not cleared here
-    fprintf('\nCorrecting Bias...');
-    X = cor_bias(X,nExamples);
-
-    %% Make edgeStruts 
-    fprintf('\nCreating Adj Matrix');
-    if restarting == 0
-        examples = cell(nExamples,1);
-        
-        for i=1:nExamples
-            fprintf('.');
-            adj = make_adj(size(origX{i},1), size(origX{i},2), size(origX{i},3),sizes(i));
-            adj = adj + adj';
-            adj(adj==2) = 1;
-            maskAdj = adj;
-            maskAdj = maskAdj(ZmaskFlat{i},:);
-            maskAdj = maskAdj(:,ZmaskFlat{i});
-            clear adj;  %clear things once not needed    
-            examples{i}.edgeStruct = UGM_makeEdgeStruct(maskAdj,nStates,1,100);
-            clear maskAdj;
-            examples{i}.Y = int32(y{i});
-            examples{i} = save_data(dir, examples{i}, i);
+            % Make distance to center a feature
+            disp('Creating Distance to Center feature...')
+            cDist = center_distance(X, nExamples);    
         end
     end
-    clear y;
-    %% Calculatennnn Other Features
+    
+    
+    % Make X,y Into Correct Shape and correct Bias   
+    [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, nPixelsArray, ...
+     nBors, cDist] = reshapeMatrices(nExamples, X, y, nBors, cDist, ...
+                                     usePriors);
 
-    %[xCor, yCor] = cor_feats(nRows, nCols, nNodes); 
-    % [WMMin, GMMin, CFMin, BGMin] = min_bins(X,y,nExamples,training);
-
-
-    %% Make Xnode, Xedge, nodeMap, edgeMap, initialize weights
-    tied = 1;
+    
+    % Make edgeStructs COULD PARALLELIZE
+    examples = makeEdgeStructs(nExamples, nStates, origX, y, ...
+                               sizes, ZmaskFlat);
 
     origY = save_data(dir, origY, nExamples+1); %save data for later
-    clear origX;
-
-    if restarting == 0
-        
-        fprintf('\nCreating Xnode, Xedge, and maps');
-        
-        %Here all the features are put into the final structure
-        for i = 1:nExamples
-            fprintf('.');
-            examples{i} = load_data(examples{i});
-            
-            %Load spm8 Priors
-            if (usePriors)
-                % Note: to test space requirements, this code has
-                % been changed such that only one priors matrix is loaded
-                c1priors = load_spm8_matrix(res, 1, i, Zmask, ...
-                                            nPixelsArray);
-                %c2priors = load_spm8_matrix(res, 2, i, Zmask, ...
-                %                            nPixelsArray);
-                %c3priors = load_spm8_matrix(res, 3, i, Zmask, ...
-                %                            nPixelsArray);
-                
-                
-                %Make Xnode
-                examples{i}.Xnode = [ones(1,1,size(X{i},3)) X{i} ...
-                                    UGM_standardizeCols(nBors{i},tied), ...
-                                    c1priors]; %c2priors,
-                                                         %c3priors];
-                                                         %GMMin{i}
-                                                         %WMMin{i}
-                                                         %BGMin{i}
-                                                         %CFMin{i}];
-                %%add feature matricies
-                %here
-                % Make Xnedge
-                sharedFeatures = [1 0 1 0]; % 0 0]; %needs to reflect number
-                                              %of features
-            else
-                examples{i}.Xnode = [ones(1,1,size(X{i},3)) X{i} ...
-                                    UGM_standardizeCols(nBors{i},tied) ...
-                                    cDist{i}]; %GMMin{i} WMMin{i}
-                                                         %BGMin{i} CFMin{i}];
-                %%add feature matricies
-                %here
-                sharedFeatures = [1 0 1 1];
-            end
-            examples{i}.Xedge = ...
-                UGM_makeEdgeFeatures(examples{i}.Xnode, ...
-                                     examples{i}.edgeStruct ...
-                                     .edgeEnds,sharedFeatures(:));
-            
-            %Makes mapping of features to parameters
-            [examples{i}.nodeMap examples{i}.edgeMap w] = ...
-                UGM_makeCRFmaps(examples{i}.Xnode, ...
-                                examples{i}.Xedge, ...
-                                examples{i}.edgeStruct,0,tied,1,1);
-            %disp('w when not restarting:')
-            %disp(w)
-            
-            examples{i} = save_data(dir, examples{i}, i);
-            
-            if (usePriors)
-                clear('c1priors')
-                %clear('c2priors')
-                %clear('c3priors')
-            end
-        end
-
-        save(strcat(paramDir,'paramsIter',int2str(0)),'w','-v7.3');
-    end
-    %% Stochastic gradient descent training
-    fprintf('\nBeginning Training\n');
-    stepSize = 1e-3;
-    iterStart = 1;
-
-    %Load saved parameters if restarting
-    if restarting == 1
-        examples = cell(nExamples,1);
-        for i = 1:nExamples
-            examples{i} = strcat(dir, 'ex', int2str(i));
-        end
-        fprintf(strcat(paramDir,'paramsIter',int2str(iterStart)));
-        while (exist(strcat(paramDir,'paramsIter', ...
-                           int2str(iterStart),'.mat'),'file') ...
-               && iterStart<iterations)
-            
-            iterStart = iterStart + 1;
-            fprintf(strcat(paramDir,'paramsIter',int2str(iterStart)));
-        end
-        if iterStart > 1
-            iterStart = iterStart -1;
-            tempData = load(strcat(paramDir,'paramsIter',int2str(iterStart)),'w');
-            w = tempData.('w');
-            %disp('w when restarting:')
-            %disp(w)
-            fprintf('\nRestarting From %d\n',iterStart);
-        end
-    end
-
-
-    %Actual training 
-    for iter = iterStart:iterations
-        i = training(randi(length(training),1));
-        
-        examples{i} = load_data(examples{i});
-        %Uncomment to not use mex
-        %examples{i}.edgeStruct.useMex = 0;
-        %calculate training step
-        
-        % Explicitly change all inputs to int32        
-        funObj = @(w)UGM_CRF_NLL(w,...
-                                  examples{i}.Xnode, ...
-                                  examples{i}.Xedge, ...
-                                  examples{i}.Y+int32(examples{i}.Y==1), ...
-                                  examples{i}.nodeMap, ...
-                                  examples{i}.edgeMap, ...
-                                  examples{i}.edgeStruct,...
-                                  @UGM_Infer_LBP);
-
-
-        examples{i} = save_data(dir, examples{i}, i);
-        [f,g] = funObj(w); %calculate gradient from training step
-        fprintf('Iter = %d of %d (fsub = %f) on %d\n',iter,iterations,f,i);
-        w = w - stepSize*g; %take small step in direction of gradient
-        save(strcat(paramDir,'paramsIter',int2str(iter)),'w','-v7.3');
-        
-    end
-
-    %origY = load_data(origY);
-
-    avg = decode(w,examples,testing,origY, 'SGM Decoding', ZmaskFlat, ...
-                 plots, dir);   
-    avg
-    if pauses
-        fprintf('(paused)\n');
-        pause
-    end
+    clear('y');
+    clear('origX');
+    clear('sizes')
+    
+    [examples, w] = prepareExamples(nExamples, examples, res, Zmask, ...
+                               nPixelsArray, X, nBors, cDist, ...
+                               usePriors);
+    
+    clear('X');
+    clear('nBors');
+    clear('cDist');
+    clear('nPixelsArray');
+    clear('Zmask');
+    
+    % Stochastic gradient descent training
+    trainCRF(nExamples, examples, leaveOut, iterations, testing, ...
+             training, w, origY, ZmaskFlat, plots, pauses);
 end
 
 %% Stats Functions
@@ -1103,4 +839,326 @@ function X = load_spm8_priors(res, tissueNum, imageNum)
     %fprintf('%d',size(X,3),size(y,3))
     X = X(1:res:end,1:res:end,1:res:end);
     
+end
+
+function [dir, paramDir, restarting] = makeDirs(fold, leaveOut, ...
+                                                res)
+    global dir paramDir restarting;
+    
+    f = 1;
+    found = 0;
+    restarting = 0;
+    
+    %%makes temp dirs to store temp files
+    while ~found
+        dir = strcat('/scratch/tgelles1/summer2014/testing/', ...
+                     int2str(fold),'res',int2str(res),'num', ...
+                     int2str(f),'/'); %directory for temp files
+        paramDir = dir; %directory for parameter filesx
+        
+        if exist(paramDir, 'dir') || exist(dir, 'dir') 
+            rmdir(paramDir, 's')
+        end
+        break; % A hack that must be removed before the world ends
+        
+        
+        % if exist(paramDir, 'dir') || exist(dir, 'dir') 
+        %     f = f + 1;
+        % else
+        %     break;
+        % end
+    end
+    
+    if f > 1
+        dir = strcat('/scratch/tgelles1/summer2014/testing/', ...
+                     int2str(fold),'res',int2str(res),'num', ...
+                     int2str(f-1),'/'); %directory for temp files
+        paramDir = dir; %directory for parameter files
+        restarting = 1;
+    else
+        mkdir(paramDir);
+    end
+end
+
+function [testing, training] = makeCrossFold(fold, nExamples)
+
+    global dir paramDir restarting;
+    
+    testing = [fold];
+    if fold == 1
+        training = 2:nExamples;
+    elseif fold == nExamples
+        training = 1:(nExamples-1);
+    else
+        training = [1:(fold-1) (fold + 1):nExamples];
+    end
+end
+
+function makeInitPlots(testing, X, y, pauses)
+    
+    if plots == 1
+        figure;
+        lenT = length(testing);
+        lenT = sqrt(lenT);
+        for j = 1:numel(testing)
+            subplot(lenT, lenT+1, j);
+            size(X{testing(j)})
+            i = testing(j);
+            imagesc(reshape((X{testing(j)}(:,:,floor(size(X{i},3)/2))), ...
+                            size(X{i},1),size(X{i},2))); %Should
+                                                         %not
+                                                         %hardcode
+                                                         %these
+            colormap gray
+        end
+        suptitle('MRI Images');
+        if pauses
+            fprintf('(paused)\n');
+            pause
+        end;
+        title('Original MRI');
+        
+        %Segmentations
+        figure;
+        lenT = length(testing);
+        lenT = sqrt(lenT);
+        for j = 1:numel(testing)
+            subplot(lenT, lenT+1, j);
+            i = testing(j);
+            imagesc(reshape((y{testing(j)}(:,:,floor(size(y{i},3)/2))), ...
+                            size(y{i},1),size(y{i},2)));
+            colormap gray
+        end
+        suptitle('Segmentation Truth');
+        if pauses
+            fprintf('(paused)\n');
+            pause
+        end
+    end
+end
+
+function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
+          nPixelsArray, nBors, cDist] = reshapeMatrices(nExamples, ...
+                                                      X, y, nBors, ...
+                                                      cDist, usePriors);
+    global dir paramDir restarting;
+    
+    sizes = zeros(nExamples);
+    for i=1:nExamples
+        [nRows,nCols,nSlices] = size(X{i});
+        sizes(i) = nRows*nCols*nSlices;
+    end
+
+    fprintf('\nMasking Zeros...');
+    [origX, origY, Zmask, X, y] = maskZeros(X, y, nExamples);
+
+    nStates = max(y{1}(:)); %assume y{1} has all states 
+    ZmaskFlat = cell(nExamples,1);
+    
+    nPixelsArray = zeros(1, nExamples);
+
+    fprintf('\nReshaping Matricies');
+    for i=1:nExamples
+        fprintf('.');
+        nPixels = size(X{i},1);
+        nPixelsArray(i) = nPixels;
+        
+        y{i} = reshape(y{i},[1, 1 nPixels]);
+        X{i} = reshape(X{i},1,1,nPixels);
+        
+        if restarting == 0
+            nBors{i} = nBors{i}(Zmask{i});
+            nBors{i} = reshape(nBors{i},1,1,nPixels);
+            
+            if (~usePriors)
+                cDist{i} = cDist{i}(Zmask{i});
+                cDist{i} = reshape(cDist{i},1,1,nPixels);
+            end
+        end
+        
+        ZmaskFlat{i} = reshape(Zmask{i}, 1, 1, sizes(i));
+    end
+
+    %clear Zmask;
+    %we choose to use Zmask later, so it is not cleared here
+    fprintf('\nCorrecting Bias...');
+    X = cor_bias(X,nExamples);
+end
+
+function examples = makeEdgeStructs(nExamples, nStates, origX, y, ...
+                                    sizes, ZmaskFlat);
+    
+    global dir paramDir restarting;
+    
+    fprintf('\nCreating Adj Matrix');
+    
+    if restarting == 0
+        examples = cell(nExamples,1);
+        
+        for i=1:nExamples
+            fprintf('.');
+            adj = make_adj(size(origX{i},1), size(origX{i},2), size(origX{i},3),sizes(i));
+            adj = adj + adj';
+            adj(adj==2) = 1;
+            maskAdj = adj;
+            maskAdj = maskAdj(ZmaskFlat{i},:);
+            maskAdj = maskAdj(:,ZmaskFlat{i});
+            clear adj;  %clear things once not needed    
+            examples{i}.edgeStruct = UGM_makeEdgeStruct(maskAdj,nStates,1,100);
+            clear maskAdj;
+            examples{i}.Y = int32(y{i});
+            examples{i} = save_data(dir, examples{i}, i);
+        end
+    end
+end
+
+function [examples, w] = prepareExamples(nExamples, examples, res, ...
+                                         Zmask, nPixelsArray, X, ...
+                                         nBors, cDist, usePriors);
+    
+    global dir paramDir restarting;
+    
+    tied = 1;
+
+    if restarting == 0
+        
+        fprintf('\nCreating Xnode, Xedge, and maps');
+        
+        %Here all the features are put into the final structure
+        for i = 1:nExamples
+            fprintf('.');
+            examples{i} = load_data(examples{i});
+            
+            %Load spm8 Priors
+            if (usePriors)
+                % Note: to test space requirements, this code has
+                % been changed such that only one priors matrix is loaded
+                c1priors = load_spm8_matrix(res, 1, i, Zmask, ...
+                                            nPixelsArray);
+                %c2priors = load_spm8_matrix(res, 2, i, Zmask, ...
+                %                            nPixelsArray);
+                %c3priors = load_spm8_matrix(res, 3, i, Zmask, ...
+                %                            nPixelsArray);
+                
+                
+                %Make Xnode
+                examples{i}.Xnode = [ones(1,1,size(X{i},3)) X{i} ...
+                                    UGM_standardizeCols(nBors{i},tied), ...
+                                    c1priors]; %c2priors,
+                                                         %c3priors];
+                                                         %GMMin{i}
+                                                         %WMMin{i}
+                                                         %BGMin{i}
+                                                         %CFMin{i}];
+                %%add feature matricies
+                %here
+                % Make Xnedge
+                sharedFeatures = [1 0 1 0]; % 0 0]; %needs to reflect number
+                                              %of features
+            else
+                examples{i}.Xnode = [ones(1,1,size(X{i},3)) X{i} ...
+                                    UGM_standardizeCols(nBors{i},tied) ...
+                                    cDist{i}]; %GMMin{i} WMMin{i}
+                                                         %BGMin{i} CFMin{i}];
+                %%add feature matricies
+                %here
+                sharedFeatures = [1 0 1 1];
+            end
+            examples{i}.Xedge = ...
+                UGM_makeEdgeFeatures(examples{i}.Xnode, ...
+                                     examples{i}.edgeStruct ...
+                                     .edgeEnds,sharedFeatures(:));
+            
+            %Makes mapping of features to parameters
+            [examples{i}.nodeMap examples{i}.edgeMap w] = ...
+                UGM_makeCRFmaps(examples{i}.Xnode, ...
+                                examples{i}.Xedge, ...
+                                examples{i}.edgeStruct,0,tied,1,1);
+            %disp('w when not restarting:')
+            %disp(w)
+            
+            examples{i} = save_data(dir, examples{i}, i);
+            
+            if (usePriors)
+                clear('c1priors')
+                %clear('c2priors')
+                %clear('c3priors')
+            end
+        end
+
+        save(strcat(paramDir,'paramsIter',int2str(0)),'w','-v7.3');
+    end
+end
+
+function trainCRF(nExamples, examples, leaveOut, iterations, testing, ...
+                  training, w, origY, ZmaskFlat, plots, pauses);
+    
+    global dir paramDir restarting;
+        
+    fprintf('\nBeginning Training\n');
+    stepSize = 1e-3;
+    iterStart = 1;
+
+    %Load saved parameters if restarting
+    if restarting == 1
+        examples = cell(nExamples,1);
+        for i = 1:nExamples
+            examples{i} = strcat(dir, 'ex', int2str(i));
+        end
+        fprintf(strcat(paramDir,'paramsIter',int2str(iterStart)));
+        while (exist(strcat(paramDir,'paramsIter', ...
+                           int2str(iterStart),'.mat'),'file') ...
+               && iterStart<iterations)
+            
+            iterStart = iterStart + 1;
+            fprintf(strcat(paramDir,'paramsIter',int2str(iterStart)));
+        end
+        if iterStart > 1
+            iterStart = iterStart -1;
+            tempData = load(strcat(paramDir,'paramsIter',int2str(iterStart)),'w');
+            w = tempData.('w');
+            %disp('w when restarting:')
+            %disp(w)
+            fprintf('\nRestarting From %d\n',iterStart);
+        end
+    end
+
+
+    %Actual training 
+    for iter = iterStart:iterations
+        i = training(randi(length(training),1));
+        
+        examples{i} = load_data(examples{i});
+        %Uncomment to not use mex
+        %examples{i}.edgeStruct.useMex = 0;
+        %calculate training step
+        
+        % Explicitly change all inputs to int32        
+        funObj = @(w)UGM_CRF_NLL(w,...
+                                  examples{i}.Xnode, ...
+                                  examples{i}.Xedge, ...
+                                  examples{i}.Y+int32(examples{i}.Y==1), ...
+                                  examples{i}.nodeMap, ...
+                                  examples{i}.edgeMap, ...
+                                  examples{i}.edgeStruct,...
+                                  @UGM_Infer_LBP);
+
+
+        examples{i} = save_data(dir, examples{i}, i);
+        [f,g] = funObj(w); %calculate gradient from training step
+        fprintf('Iter = %d of %d (fsub = %f) on %d\n',iter,iterations,f,i);
+        w = w - stepSize*g; %take small step in direction of gradient
+        save(strcat(paramDir,'paramsIter',int2str(iter)),'w','-v7.3');
+        
+    end
+
+    %origY = load_data(origY);
+
+    avg = decode(w, examples, testing, origY, 'SGM Decoding', ...
+                 ZmaskFlat, plots, dir);
+    avg
+    if pauses
+        fprintf('(paused)\n');
+        pause
+    end
 end
