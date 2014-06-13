@@ -1,0 +1,2 @@
+/home/tgelles1/Desktop/contourRelaxedSuperpixels-0.1-r2/build/CMakeFiles/contourRelaxedSuperpixels.dir
+/home/tgelles1/Desktop/contourRelaxedSuperpixels-0.1-r2/build/CMakeFiles/doc.dir
