@@ -1,4 +1,6 @@
 %% CRF_test
+% Primary author: Chris Magnano
+%
 % Editors: Teo Gelles
 %          Andrew Gilchrist-Scott
 %
@@ -6,11 +8,17 @@
 % segmentation capabilities of the UGM CRF model with spm8
 
 %Matlab paths that need to be added to run:
-%addpath(genpath('/acmi/summer2014/UGM'))
+%addpath(genpath('/acmi/summer2014/USER/brainseg2014/UGM'))
 %addpath(genpath('/acmi/fmri/spm8'))
 
 
-function CRF_test(leaveOut,iterations,res,usePriors)
+function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
+    
+    if (usePriors == true && useCdist == true)
+        exception = MException('Parameters:Conflicting',['Cannot use both Priors ' ...
+                            'and Cdist']);
+        throw(exception);
+    end
     
     close all
     pauses = 0; %turn pausing on/off (used in makeInitPlots)
@@ -42,7 +50,7 @@ function CRF_test(leaveOut,iterations,res,usePriors)
         disp('Creating Neighborhood feature...');
         nBors = make_nBors(X, nExamples);
         cDist = NaN;
-        if ~usePriors % If results of spm8 are being used, there is
+        if useCdist % If results of spm8 are being used, there is
                       % not enough memory on the swatcs computers
                       % to use the cDist feature
             
@@ -56,7 +64,7 @@ function CRF_test(leaveOut,iterations,res,usePriors)
     % Make X,y Into Correct Shape and correct Bias   
     [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, nPixelsArray, ...
      nBors, cDist] = reshapeMatrices(nExamples, X, y, nBors, cDist, ...
-                                     usePriors);
+                                     useCdist);
 
     
     % Make edgeStructs COULD PARALLELIZE
@@ -70,7 +78,7 @@ function CRF_test(leaveOut,iterations,res,usePriors)
     
     [examples, w] = prepareExamples(nExamples, examples, res, Zmask, ...
                                nPixelsArray, X, nBors, cDist, ...
-                               usePriors);
+                               usePriors, useCdist);
     
     clear('X');
     clear('nBors');
@@ -940,7 +948,8 @@ end
 function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
           nPixelsArray, nBors, cDist] = reshapeMatrices(nExamples, ...
                                                       X, y, nBors, ...
-                                                      cDist, usePriors);
+                                                      cDist, ...
+                                                      useCdist);
     global dir paramDir restarting;
     
     sizes = zeros(nExamples);
@@ -970,7 +979,7 @@ function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
             nBors{i} = nBors{i}(Zmask{i});
             nBors{i} = reshape(nBors{i},1,1,nPixels);
             
-            if (~usePriors)
+            if (useCdist)
                 cDist{i} = cDist{i}(Zmask{i});
                 cDist{i} = reshape(cDist{i},1,1,nPixels);
             end
@@ -1014,7 +1023,7 @@ end
 
 function [examples, w] = prepareExamples(nExamples, examples, res, ...
                                          Zmask, nPixelsArray, X, ...
-                                         nBors, cDist, usePriors);
+                                         nBors, cDist, usePriors,useCdist);
     
     global dir paramDir restarting;
     
@@ -1053,13 +1062,23 @@ function [examples, w] = prepareExamples(nExamples, examples, res, ...
                 %add feature matricies
                 sharedFeatures = [1 0 1 0]; % 0 0]; %needs to reflect number
                                               %of features
-            else
+            elseif (useCdist)
+                % We know that useCdist and usePriors are
+                % mututally exclusive
                 examples{i}.Xnode = [ones(1,1,size(X{i},3)) X{i} ...
                                     UGM_standardizeCols(nBors{i},tied) ...
                                     cDist{i}];
 
                 %add feature matricies
                 sharedFeatures = [1 0 1 1];
+                
+            else
+                examples{i}.Xnode = [ones(1,1,size(X{i},3)) X{i} ...
+                                    UGM_standardizeCols(nBors{i},tied)];
+
+                %add feature matricies
+                sharedFeatures = [1 0 1];
+                
             end
             
             examples{i}.Xedge = ...
