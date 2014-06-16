@@ -34,6 +34,8 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
                                    res);
     
+    %useSLIC(X{1},10,10,3)
+    
     % Get data for Cross Folding
     [testing, training] = makeCrossFold(fold, nExamples);
     
