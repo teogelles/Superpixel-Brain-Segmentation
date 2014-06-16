@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/bashNoCdistNoPriors.sh
+InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts
+Notification = Never
+getenv = True
+Log = /acmi/summer2014/agilchr1/condorOut/NoCdistNoPriors/inClass$(Process).log
+Error = /acmi/summer2014/agilchr1/condorOut/NoCdistNoPriors/inClass$(Process).err
+Output = /acmi/summer2014/agilchr1/condorOut/NoCdistNoPriors/inClass$(Process).out
+requirements = (SlotID == 2) && (Memory > 15000)
+
+Arguments = $(Process)
+queue 18

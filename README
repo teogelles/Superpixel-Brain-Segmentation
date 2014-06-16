@@ -31,4 +31,6 @@ Directory Listing:
 /contourRelaxedSuperpixels-0.1-r2 - Competing code to SLIC; runs on its own but
            at the time is not configurable with MATLAB.
 
-/vlfeat-0.9.18 - MATLAB package of different image processing softwares
+/vlfeat-0.9.18 - MATLAB package of different image processing softwares,
+	         The original paper describing this can be found at:
+		 http://www.robots.ox.ac.uk/~vedaldi/assets/pubs/vedaldi10vlfeat.pdf
