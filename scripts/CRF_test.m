@@ -34,7 +34,16 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
                                    res);
     
-    %useSLIC(X{1},10,10,3)
+    superPixels = SLIC_3D(X{1},50,20);
+    
+    figure
+    image(X{1}(:,:,15));
+    colormap gray
+    figure
+    image(superPixels(:,:,15));
+    colormap gray
+    
+    throw('Stupid exception');
     
     % Get data for Cross Folding
     [testing, training] = makeCrossFold(fold, nExamples);

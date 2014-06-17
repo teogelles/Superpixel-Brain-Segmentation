@@ -84,36 +84,36 @@ function ne = getNeighbors2(mat, i, j)
 end
 
 function ne = getNeighbors3(mat, i, j, k)
-    num_ne = 0;
+    num_ne = 1;
     if i == 1
         indi = [0 1];
-        num_ne = num_ne + 2;
+        num_ne = num_ne * 2;
     elseif i == size(mat,1)
         indi = [-1 0];
-        num_ne = num_ne + 2;
+        num_ne = num_ne * 2;
     else
         indi = [-1 0 1];
-        num_ne = num_ne + 3;
+        num_ne = num_ne * 3;
     end
     if j == 1
         indj = [0 1];
-        num_ne = num_ne + 2;
+        num_ne = num_ne * 2;
     elseif j == size(mat,2)
         indj = [-1 0];
-        num_ne = num_ne + 2;
+        num_ne = num_ne * 2;
     else
         indj = [-1 0 1];
-        num_ne = num_ne + 3;
+        num_ne = num_ne * 3;
     end
     if k == 1
         indk = [0 1];
-        num_ne = num_ne + 2;
+        num_ne = num_ne * 2;
     elseif k == size(mat,3)
         indk = [-1 0];
-        num_ne = num_ne + 2;
+        num_ne = num_ne * 2;
     else
         indk = [-1 0 1];
-        num_ne = num_ne + 2;
+        num_ne = num_ne * 3;
     end
     
     ne = zeros(num_ne,3);
