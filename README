@@ -1,7 +1,7 @@
 Swarthmore Summer 2014 CS Research
 Prof. Ameet Soni
 Students: Teo Gelles & Andrew Gilchrist-Scott
-Last Updated: 06/02/2014
+Last Updated: 06/16/2014
 
 
 Directory: /acmi/summer2014
@@ -15,8 +15,8 @@ imaging research over the summer.  More general resources are located in
 Directory Listing:
 
 ./scripts - Matlab scripts for tissue segmentation processing
-	   Currently mostly a copy of the work done by Christopher Magnano
-	   from Summer 2013
+	    Currently mostly a copy of the work done by Christopher
+	    Magnano
 
 ./UGM - Source code for the UGM segmentation software package, which contains
       	the CRF utilities used for research
@@ -25,3 +25,17 @@ Directory Listing:
 				     superpixels software, which takes
 				     png images and creates superpixeled
 				     versions of the images
+
+/UGM - MATLAB library for doing some of the primary functionality of our main
+       code. This is the code that we have edited (somewhat) for functionality,
+       efficiency, or appearance. The original code can be found online and
+       slightly modified code can be found in the /acmi/chris13/UGM directory
+
+/SLICSuperPixelsAndSuperVoxelsCode - Code from the original SLIC developers.
+           Unfortunately this is cpp code that can only be run in windows,
+	   but it still serves as a good reference to understand the algo.
+
+/vlfeat-0.9.18 - MATLAB package of different image processing
+	         softwares, The original paper describing this can be
+	         found at:
+	         http://www.robots.ox.ac.uk/~vedaldi/assets/pubs/vedaldi10vlfeat.pdf

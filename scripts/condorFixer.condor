@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/condorFixerBash.sh
+InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts
+Notification = Never
+getenv = True
+Log = /acmi/summer2014/agilchr1/condorOut/inClass2.log
+Error = /acmi/summer2014/agilchr1/condorOut/inClass2.err
+Output = /acmi/summer2014/agilchr1/condorOut/inClass2.out
+requirements = (SlotID == 2) && (Memory > 15000)
+
+Arguments = $(Process)
+queue 1
