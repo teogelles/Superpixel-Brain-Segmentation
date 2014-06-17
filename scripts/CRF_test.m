@@ -49,7 +49,7 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
         %Load everything in if restarting 
     else % if not restarting
         % Make Average Neighbor intensity a feature
-        disp('Creating Neighborhood feature...');
+        fprintf('Creating Neighborhood feature...\n');
         nBors = make_nBors(X, nExamples);
         cDist = NaN;
         if useCdist % If results of spm8 are being used, there is
@@ -57,7 +57,7 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
                       % to use the cDist feature
             
             % Make distance to center a feature
-            disp('Creating Distance to Center feature...')
+            fprintf('Creating Distance to Center feature...\n')
             cDist = center_distance(X, nExamples);    
         end
     end
@@ -463,12 +463,14 @@ end
 function [X,y,nExamples] = load_nifti(imDir,res)
 %Loads IBSR V2 nifti files
 
+    fprintf('Loading Nifti Images');
     bList = dir(strcat(imDir));
     nExamples = 18; %for README
     X = cell(nExamples,1);
     y = cell(nExamples,1);
     for i = 1:nExamples
         
+        fprintf('.');
         if i < 10
             place = strcat(imDir,'IBSR_0',int2str(i),'/');
             fileHead = strcat('IBSR_0',int2str(i));
@@ -491,8 +493,9 @@ function [X,y,nExamples] = load_nifti(imDir,res)
         
         
     end
+    fprintf('\n');
+    
     for i = 1:nExamples
-        fprintf('%d, %d\n',size(X{i},3),size(y{i},3))
         X{i} = X{i}(1:res:end,1:res:end,1:res:end);
         y{i} = y{i}(1:res:end,1:res:end,1:res:end);
     end
@@ -779,30 +782,14 @@ function priors = load_spm8_matrix(res, tissueNum, imageNum, Zmask, ...
     
     priorsx = load_spm8_priors(res, tissueNum,imageNum);
     
-    % pxcell = cell(1)
-    % pycell = cell(1)
-    % pxcell{1} = priorsx;
-    % pycell{1} = priorsy;
-    
-    %    [priorsx, priorsy, Zmask, X, y] = maskZeros(pxcell, pycell, 1);
-    
     restarting = 0;
-        
-    %fprintf('.');
+    
     nPixels = nPixelsArray(imageNum);
-    %disp('priors nPixels')
-    %disp(nPixels)
     
     if restarting == 0
         
-        %disp('size of priors 1')
-        %disp(size(priorsx))
         priorsx = priorsx(Zmask{imageNum});
-        %disp('size of priors 2')
-        %disp(size(priorsx))
         priorsx = reshape(priorsx,1,1,nPixels);
-        %disp('size of priors 3')
-        %disp(size(priorsx))
     end
     
     priors = priorsx;
@@ -960,7 +947,7 @@ function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
         sizes(i) = nRows*nCols*nSlices;
     end
 
-    fprintf('\nMasking Zeros...');
+    fprintf('Masking Zeros...\n');
     [origX, origY, Zmask, X, y] = maskZeros(X, y, nExamples);
 
     nStates = max(y{1}(:)); %assume y{1} has all states 
@@ -968,7 +955,7 @@ function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
     
     nPixelsArray = zeros(1, nExamples);
 
-    fprintf('\nReshaping Matricies');
+    fprintf('Reshaping Matricies');
     for i=1:nExamples
         fprintf('.');
         nPixels = size(X{i},1);
@@ -989,10 +976,11 @@ function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
         
         ZmaskFlat{i} = reshape(Zmask{i}, 1, 1, sizes(i));
     end
-
+    fprintf('\n');
+    
     %clear Zmask;
     %we choose to use Zmask later, so it is not cleared here
-    fprintf('\nCorrecting Bias...');
+    fprintf('Correcting Bias...\n');
     X = cor_bias(X,nExamples);
 end
 
@@ -1001,7 +989,7 @@ function examples = makeEdgeStructs(nExamples, nStates, origX, y, ...
     
     global dir paramDir restarting;
     
-    fprintf('\nCreating Adj Matrix');
+    fprintf('Creating Adj Matrix');
     
     if restarting == 0
         examples = cell(nExamples,1);
@@ -1021,6 +1009,7 @@ function examples = makeEdgeStructs(nExamples, nStates, origX, y, ...
             examples{i} = save_data(dir, examples{i}, i);
         end
     end
+    fprintf('\n');
 end
 
 function [examples, w] = prepareExamples(nExamples, examples, res, ...
@@ -1033,7 +1022,7 @@ function [examples, w] = prepareExamples(nExamples, examples, res, ...
 
     if restarting == 0
         
-        fprintf('\nCreating Xnode, Xedge, and maps');
+        fprintf('Creating Xnode, Xedge, and maps');
         
         %Here all the features are put into the final structure
         for i = 1:nExamples
@@ -1084,9 +1073,9 @@ function [examples, w] = prepareExamples(nExamples, examples, res, ...
             end
             
             examples{i}.Xedge = ...
-                UGM_makeEdgeFeatures(examples{i}.Xnode, ...
+                 UGM_makeEdgeFeatures(examples{i}.Xnode, ...
                                      examples{i}.edgeStruct ...
-                                     .edgeEnds,sharedFeatures(:));
+                                      .edgeEnds,sharedFeatures(:));
             
             %Makes mapping of features to parameters
             [examples{i}.nodeMap examples{i}.edgeMap w] = ...
@@ -1103,6 +1092,7 @@ function [examples, w] = prepareExamples(nExamples, examples, res, ...
             end
         end
 
+        fprintf('\n');
         save(strcat(paramDir,'paramsIter',int2str(0)),'w','-v7.3');
     end
 end

@@ -31,70 +31,14 @@ for i = 1:nInstances
     %     nodePot = nodePot + abs(min(min(min(nodePot)))) + 1;
     
     % Compute marginals and logZ
-    % if (isnan(nodePot(1, 1)))
-    %     disp('nodePot Bad')
-    %     disp(nodePot)
-    %     disp(edgeStruct)
-    %     disp(varargin)
-    % end
-    % if (isnan(edgePot(1, 1, 1)))
-    %     disp('edgePot Bad')
-    %     disp(edgePot)
-    %     disp(edgeStruct)
-    %     disp(varargin)
-    % end
 
-    disp('variable status pre-inferFunc')
-    if (isnan(nodePot(1, 1)))
-        disp('nodePot isnan')
-    end
-    if (isnan(edgePot(1, 1)))
-        disp('edgePot isnan')
-    end
-    if (isnan(edgeStruct.V(1)))
-        disp('edgeStruct V isnan')
-    end
-    if (isnan(edgeStruct.E(1)))
-        disp('edgeStruct E isnan')
-    end
-    if (isnan(edgeStruct.edgeEnds(1, 1)))
-        disp('edgeStruct edgeEnds isnan')
-    end
-    if (isnan(edgeStruct.nStates(1)))
-        disp('edgeStruct nStates isnan')
-    end
     [nodeBel,edgeBel,logZ] = inferFunc(nodePot,edgePot,edgeStruct,varargin{:});
-    disp('variable status post-inferFunc')
-    if (isnan(nodePot(1, 1)))
-        disp('nodePot isnan')
-    end
-    if (isnan(edgePot(1, 1)))
-        disp('edgePot isnan')
-    end
-    if (isnan(edgeStruct.V(1)))
-        disp('edgeStruct V isnan')
-    end
-    if (isnan(edgeStruct.E(1)))
-        disp('edgeStruct E isnan')
-    end
-    if (isnan(edgeStruct.edgeEnds(1, 1)))
-        disp('edgeStruct edgeEnds isnan')
-    end
-    if (isnan(edgeStruct.nStates(1)))
-        disp('edgeStruct nStates isnan')
-    end
     
     % Update NLL
     if edgeStruct.useMex
         
-        fprintf('\nNLL: %d, logZ: %d\n', NLL, logZ);
-        if (isnan(logZ))
-            disp('BadBadBad Logz')
-        end
-        
         NLL = NLL - UGM_LogConfigurationPotentialC(Y(i,:),nodePot, ...
                                                    edgePot,edgeEnds) + logZ;
-        fprintf('\nNLL: %d, logZ: %d\n', NLL, logZ);
         
         % Updates in-place
         UGM_CRF_NLLC(g,int32(i),nodeBel,edgeBel,edgeEnds,nStates,nodeMap,edgeMap,Xnode,Xedge,Y);
