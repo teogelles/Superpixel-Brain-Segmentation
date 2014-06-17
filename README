@@ -14,6 +14,14 @@ imaging research over the summer.  More general resources are located in
 
 Directory Listing:
 
-/scripts - Matlab scripts for tissue segmentation processing
+./scripts - Matlab scripts for tissue segmentation processing
 	   Currently mostly a copy of the work done by Christopher Magnano
 	   from Summer 2013
+
+./UGM - Source code for the UGM segmentation software package, which contains
+      	the CRF utilities used for research
+
+./contourRelaxedSuperpixels-0.1-r2 - Source code for the contour-relaxed
+				     superpixels software, which takes
+				     png images and creates superpixeled
+				     versions of the images
