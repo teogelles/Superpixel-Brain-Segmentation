@@ -36,7 +36,7 @@ function iter = CRF_fastTune(fold,minIter,maxIter,leaveOut,res, usePriors)
         %Load everything in if restarting 
     else % if not restarting
         % Make Average Neighbor intensity a feature
-        disp('Creating Neighborhood feature...');
+        fprintf('Creating Neighborhood Feature...\n');
         nBors = make_nBors(X, nExamples);
         cDist = NaN;
         if ~usePriors % If results of spm8 are being used, there is
@@ -44,7 +44,7 @@ function iter = CRF_fastTune(fold,minIter,maxIter,leaveOut,res, usePriors)
                       % to use the cDist feature
             
             % Make distance to center a feature
-            disp('Creating Distance to Center feature...')
+            fprintf('Creating Distance to Center Feature...\n')
             cDist = center_distance(X, nExamples);    
         end
     end
@@ -442,12 +442,14 @@ end
 function [X,y,nExamples] = load_nifti(imDir,res)
 %Loads IBSR V2 nifti files
 
+    fprintf('Loading Nifti Images');
     bList = dir(strcat(imDir));
     nExamples = 18; %for README
     X = cell(nExamples,1);
     y = cell(nExamples,1);
     for i = 1:nExamples
         
+        fprintf('.');
         if i < 10
             place = strcat(imDir,'IBSR_0',int2str(i),'/');
             fileHead = strcat('IBSR_0',int2str(i));
@@ -467,9 +469,9 @@ function [X,y,nExamples] = load_nifti(imDir,res)
         I_uncompt1 = spm_vol(I_t1uncompress);
         I_T1 = spm_read_vols(I_uncompt1);
         y{i} = I_T1+1;
-        
-        
     end
+    fprintf('\n');
+    
     for i = 1:nExamples
         X{i} = X{i}(1:res:end,1:res:end,1:res:end);
         y{i} = y{i}(1:res:end,1:res:end,1:res:end);
@@ -841,7 +843,6 @@ function priors = load_spm8_matrix(res, tissueNum, imageNum, Zmask, ...
     
     restarting = 0;
     
-    fprintf('.');
     nPixels = nPixelsArray(imageNum);
     
     if restarting == 0
@@ -949,8 +950,9 @@ function makeInitPlots(testing, X, y, pauses)
 end
 
 function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
-          nPixelsArray, nBors, cDist] = reshapeMatrices(nExamples, X, y, nBors, ...
-                                          cDist, usePriors)
+          nPixelsArray, nBors, cDist] = reshapeMatrices(nExamples, ...
+                                                      X, y, nBors, ...
+                                                      cDist, usePriors)
     
     global dir paramDir restarting;
     
@@ -960,14 +962,14 @@ function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
         sizes(i) = nRows*nCols*nSlices;
     end
     
-    fprintf('\nMasking Zeros...');
+    fprintf('Masking Zeros...\n');
     [origX, origY, Zmask, X, y] = maskZeros(X, y, nExamples);
     
     nStates = max(y{1}(:)); %assume y{1} has all states
     ZmaskFlat = cell(nExamples,1);
     
     
-    fprintf('\nReshaping Matricies');
+    fprintf('Reshaping Matricies');
     
     nPixelsArray = zeros(1, nExamples);
     
@@ -991,9 +993,10 @@ function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
         
         ZmaskFlat{i} = reshape(Zmask{i}, 1, 1, sizes(i));
     end
-
+    fprintf('\n');
+    
     %clear Zmask;
-    fprintf('\nCorrecting Bias...');
+    fprintf('Correcting Bias...\n');
     X = cor_bias(X,nExamples);
 end
 
@@ -1002,7 +1005,7 @@ function examples = makeEdgeStructs(nExamples, nStates, origX, y, ...
     
     global dir paramDir restarting;
     
-    fprintf('\nCreating Adj Matrix');
+    fprintf('Creating Adj Matrix');
     if restarting == 0
         examples = cell(nExamples,1);
         
@@ -1021,6 +1024,7 @@ function examples = makeEdgeStructs(nExamples, nStates, origX, y, ...
             examples{i} = save_data(dir, examples{i}, i); %save everything to the output folder 
         end
     end
+    fprintf('\n');
 end
 
 
@@ -1037,7 +1041,7 @@ function [examples, w] = prepareExamples(nExamples, examples, res, Zmask, ...
 
     if restarting == 0
         
-        fprintf('\nCreating Xnode, Xedge, and maps');
+        fprintf('Creating Xnode, Xedge, and maps');
         
         for i = 1:nExamples
             
@@ -1090,6 +1094,7 @@ function [examples, w] = prepareExamples(nExamples, examples, res, Zmask, ...
             clear('c1priors')
         end
 
+        fprintf('\n');
     end
 end
 
@@ -1109,7 +1114,6 @@ function trainCRF(nExamples, examples, minIter, maxIter, leaveOut, ...
     %Load in the previous paramaters for restarting 
     if restarting == 1
         
-        disp('inside restarting if statement')
         examples = cell(nExamples,1);
         for i = 1:nExamples
             examples{i} = strcat(dir, 'ex', int2str(i));
@@ -1117,15 +1121,12 @@ function trainCRF(nExamples, examples, minIter, maxIter, leaveOut, ...
         fprintf(strcat(paramDir,'paramsIter',int2str(iterStart), '\n'));
         while exist(strcat(paramDir,'paramsIter',int2str(iterStart),'.mat'),'file')
             iterStart = iterStart + 1;
-            fprintf(strcat(paramDir,'paramsIter',int2str(iterStart)));
         end
         
         if iterStart > 1
             iterStart = iterStart -1;
             tempData = load(strcat(paramDir,'paramsIter',int2str(iterStart)),'w');
             w = tempData.('w');
-            disp('w is set')
-            fprintf('\nRestarting From %d\n',iterStart);
         end
     end
 
