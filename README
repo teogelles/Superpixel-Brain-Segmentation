@@ -14,10 +14,17 @@ imaging research over the summer.  More general resources are located in
 
 Directory Listing:
 
-/scripts - Matlab scripts for tissue segmentation processing
-	   Currently mostly a copy of the work done by Christopher Magnano
-	   from Summer 2013, though most non-useful code is stored in the
-	   legacy directory
+./scripts - Matlab scripts for tissue segmentation processing
+	    Currently mostly a copy of the work done by Christopher
+	    Magnano
+
+./UGM - Source code for the UGM segmentation software package, which contains
+      	the CRF utilities used for research
+
+./contourRelaxedSuperpixels-0.1-r2 - Source code for the contour-relaxed
+				     superpixels software, which takes
+				     png images and creates superpixeled
+				     versions of the images
 
 /UGM - MATLAB library for doing some of the primary functionality of our main
        code. This is the code that we have edited (somewhat) for functionality,
@@ -28,9 +35,7 @@ Directory Listing:
            Unfortunately this is cpp code that can only be run in windows,
 	   but it still serves as a good reference to understand the algo.
 
-/contourRelaxedSuperpixels-0.1-r2 - Competing code to SLIC; runs on its own but
-           at the time is not configurable with MATLAB.
-
-/vlfeat-0.9.18 - MATLAB package of different image processing softwares,
-	         The original paper describing this can be found at:
-		 http://www.robots.ox.ac.uk/~vedaldi/assets/pubs/vedaldi10vlfeat.pdf
+/vlfeat-0.9.18 - MATLAB package of different image processing
+	         softwares, The original paper describing this can be
+	         found at:
+	         http://www.robots.ox.ac.uk/~vedaldi/assets/pubs/vedaldi10vlfeat.pdf
