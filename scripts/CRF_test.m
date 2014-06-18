@@ -34,10 +34,26 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     % Load IBSR Data
     [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
                                    res);
+
+    numSuperVoxels = 50;
+    shapeParam = 20;
+    superPixels = SLIC_3D(X{1},numSuperVoxels, shapeParam);
     
-    % Comment this section out to work with running the condor scripts
-    superVoxels = SLIC_3D(X{1},200,10);
-    
+    % figure
+    % image(X{1}(:,:,size(X{1}, 3)/2));
+    % colormap gray
+    % figure
+    % image(superPixels(:,:,size(superPixels, 3)/2));
+    % colormap gray
+        
+    slicNii = make_nii(superPixels);
+    save_nii(slicNii, strcat('slic', '-', int2str(numSuperVoxels), ...
+                             '-', int2str(shapeParam), '-', int2str(res), ...
+                             '-', '1', '.nii'));
+    xNii = make_nii(X{1});
+    save_nii(xNii, strcat('x', '-', int2str(numSuperVoxels), ...
+                             '-', int2str(shapeParam), '-', int2str(res), ...
+                             '-', '1', '.nii'));
     throw('Stupid exception');
     
     % Get data for Cross Folding
@@ -469,7 +485,7 @@ function [X,y,nExamples] = load_nifti(imDir,res)
 
     fprintf('Loading Nifti Images');
     bList = dir(strcat(imDir));
-    nExamples = 18; %for README
+    nExamples = 18; %The IBSR_nifti_stripped directory has 18 image
     X = cell(nExamples,1);
     y = cell(nExamples,1);
     for i = 1:nExamples
@@ -494,9 +510,8 @@ function [X,y,nExamples] = load_nifti(imDir,res)
         I_uncompt1 = spm_vol(I_t1uncompress);
         I_T1 = spm_read_vols(I_uncompt1);
         y{i} = I_T1+1;
-        
-        
     end
+    
     fprintf('\n');
     
     for i = 1:nExamples
