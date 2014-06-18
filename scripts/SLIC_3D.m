@@ -27,9 +27,11 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     
     if ~(shapeParam) || (shapeParam < 0)
         shapeParam = 20;
+        fprintf('Setting shapeParam to default of 20');
     end
     if ~(numSuperVoxels) || (numSuperVoxels < 0)
-        numSuperPixels = 200;
+        numSuperVoxels = 200;
+        fprintf('Setting numSuperVoxels to defualt of 200');
     end
     
     numVoxels = size(imageMat,1)*size(imageMat,2)*size(imageMat,3);

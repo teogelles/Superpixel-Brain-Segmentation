@@ -3,9 +3,9 @@ Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/bashCdistNoPriors.sh
 InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts
 Notification = Never
 getenv = True
-Log = /acmi/summer2014/agilchr1/condorOut/CdistNoPriors/inClass$(Process).log
-Error = /acmi/summer2014/agilchr1/condorOut/CdistNoPriors/inClass$(Process).err
-Output = /acmi/summer2014/agilchr1/condorOut/CdistNoPriors/inClass$(Process).out
+Log = /acmi/summer2014/agilchr1/condorOut/CdistNoPriors_v2/inClass$(Process).log
+Error = /acmi/summer2014/agilchr1/condorOut/CdistNoPriors_v2/inClass$(Process).err
+Output = /acmi/summer2014/agilchr1/condorOut/CdistNoPriors_v2/inClass$(Process).out
 requirements = (SlotID == 2) && (Memory > 15000)
 
 Arguments = $(Process)

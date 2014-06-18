@@ -27,13 +27,13 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     fold = leaveOut + 1; % Because the condor scripts start 1 step lower
     
     global dir paramDir restarting;
-    [dir, paramDir, restarting] = makeDirs(fold, leaveOut, res);
+    [dir, paramDir, restarting] = makeDirs(fold, leaveOut, res, ...
+                                           usePriors, useCdist);
     
 
     % Load IBSR Data
     [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
-                                   res);
-    
+                                   res)    
     numSuperVoxels = 100;
     shapeParam = 20;
     superPixels = SLIC_3D(X{1},numSuperVoxels, shapeParam);
@@ -857,7 +857,7 @@ function X = load_spm8_priors(res, tissueNum, imageNum)
 end
 
 function [dir, paramDir, restarting] = makeDirs(fold, leaveOut, ...
-                                                res)
+                                                res, usePriors, useCdist)
     global dir paramDir restarting;
     
     f = 1;
@@ -868,6 +868,8 @@ function [dir, paramDir, restarting] = makeDirs(fold, leaveOut, ...
     while ~found
         dir = strcat('/scratch/tgelles1/summer2014/testing/', ...
                      int2str(fold),'res',int2str(res),'num', ...
+                     'pr',int2str(usePriors),...
+                     'Cd',int2str(useCdist),...
                      int2str(f),'/'); %directory for temp files
         paramDir = dir; %directory for parameter filesx
         
@@ -887,6 +889,8 @@ function [dir, paramDir, restarting] = makeDirs(fold, leaveOut, ...
     if f > 1
         dir = strcat('/scratch/tgelles1/summer2014/testing/', ...
                      int2str(fold),'res',int2str(res),'num', ...
+                     'pr',int2str(usePriors),...
+                     'Cd',int2str(useCdist),...
                      int2str(f-1),'/'); %directory for temp files
         paramDir = dir; %directory for parameter files
         restarting = 1;
