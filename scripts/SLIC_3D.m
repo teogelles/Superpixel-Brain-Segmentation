@@ -15,6 +15,15 @@
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
 function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
+% SLIC_3D - Get a supervoxelated image
+%
+% @param imageMat - The image to be supervoxelated as a matrix
+% @param numSuperVoxels - The number of supervoxels to use (approximate)
+% @param shapeParam - Weight used to change the importance of
+% Euclidean distance in the calculateDistance function (which uses
+% both Euclidean distance and a color metric)
+%
+% @return - The labels for the supervoxels of imageMat as a matrix
     
     if ~(shapeParam) || (shapeParam < 0)
         shapeParam = 20;
@@ -26,7 +35,8 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     numVoxels = size(imageMat,1)*size(imageMat,2)*size(imageMat,3);
     % in the original cpp code, they add an odd .5 to S, but we're
     % not sure why, so we're going to leave that off for now
-    step = .5 + (numVoxels/numSuperVoxels)^(1/3);
+    %    step = .5 + (numVoxels/numSuperVoxels)^(1/3);
+    step = (numVoxels/numSuperVoxels)^(1/3);
     
     % Initialize superpixel centers and adjust to neighbor point of
     % lowest gradient
@@ -37,11 +47,17 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     labels = -1*ones(size(imageMat));
     distances = Inf*ones(size(imageMat));
     
+    fprintf('Superpixelating Images');
+    % The algorithm technically calls for repeating this loop until
+    % the change in placement of the centers is low, but as the
+    % authors say 10 iterations generally suffices
     for iterations = 1:10
         
+        fprintf('.');
         centerTracker = zeros(size(centers,1),5);
-        
+
         for c = 1:size(centers,1)
+
             neb = getNeighborhood(imageMat,step,centers(c,1), ...
                                            centers(c,2),centers(c,3));
             for neb_i = 1:size(neb,1)
@@ -84,16 +100,22 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         clear newCenters;
         
     end
+    
+    fprintf('\n');
 end
 
 function seeds = getSeeds(imageMat, step)
 % getSeeds takes the original image and the step size and returns a
 % matriz of all the seed locations for starting the superpixel algo
+    
     numSeeds = 0;
     n = 1;
-    xstrips = int32(.5 + size(imageMat,1)/step);
-    ystrips = int32(.5 + size(imageMat,2)/step);
-    zstrips = int32(.5 + size(imageMat,3)/step);
+    %    xstrips = int32(.5 + size(imageMat,1)/step);
+    %    ystrips = int32(.5 + size(imageMat,2)/step);
+    %    zstrips = int32(.5 + size(imageMat,3)/step);
+    xstrips = int32(size(imageMat,1)/step);
+    ystrips = int32(size(imageMat,2)/step);
+    zstrips = int32(size(imageMat,3)/step);
     
     xerr = size(imageMat,1) - step*xstrips;
     if (xerr < 0)
@@ -158,7 +180,7 @@ end
 
 function ne = getNeighbors(mat, i, j, k)
     num_ne = 1;
-    % We claculate the number of neighbors so that we can
+    % We calculate the number of neighbors so that we can
     % preallocate the space for the neighbors array
     if i == 1
         indi = [0 1];
@@ -243,6 +265,7 @@ function grads = gradientApprox(im,seeds)
             
             grads(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3)) = ne_diffsum/ ...
                 size(nene,1);
+            
             clear nene
         end
         grads(seeds(i,1),seeds(i,2),seeds(i,3)) = diffsum/size(ne, ...
@@ -331,7 +354,18 @@ function ne = getNeighborhood(mat,sq_rad,i,j,k)
 end
 
 function dist = calculateDistance(mat,cent,neb,m,s)
-    dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2 + (cent(3)-neb(3))^2;
+% calculateDistance - Returns the distance between a pixel and its
+% center with the special SLIC metric that incorporates both
+% Euclidean distance and color
+    
+
+    dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2 + (cent(3)-neb(3))^2; ...
+    % Square of Euclidean distance
+    
     dcq = (cent(4)-mat(neb(1),neb(2),neb(3)))^2;
+    % Square of color distance
+    
+    
     dist = sqrt(dcq + (dsq/(s^2))*(m^2));
+    % Overall distance
 end

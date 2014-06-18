@@ -34,7 +34,7 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
                                    res);
     
-    numSuperVoxels = 50;
+    numSuperVoxels = 100;
     shapeParam = 20;
     superPixels = SLIC_3D(X{1},numSuperVoxels, shapeParam);
     
