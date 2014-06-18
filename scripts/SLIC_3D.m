@@ -14,6 +14,7 @@
 % Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
+
 function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     
     if ~(shapeParam) || (shapeParam < 0)
@@ -25,10 +26,12 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         fprintf('Setting numSuperVoxels to defualt of 200');
     end
     
+    mutexInit();
+    
     numVoxels = size(imageMat,1)*size(imageMat,2)*size(imageMat,3);
     % in the original cpp code, they add an odd .5 to S, but we're
     % not sure why, so we're going to leave that off for now
-    step = .5 + (numVoxels/numSuperVoxels)^(1/3);
+    step = (numVoxels/numSuperVoxels)^(1/3);
     
     % Initialize superpixel centers and adjust to neighbor point of
     % lowest gradient
@@ -48,7 +51,8 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
                                            centers(c,2),centers(c,3));
             for neb_i = 1:size(neb,1)
                 D = calculateDistance(imageMat,centers(c,:), ...
-                                      neb(neb_i,:),shapeParam,step);
+                                      neb(neb_i,:),shapeParam, ...
+                                      step);                
                 if D < distances(neb(neb_i,1),neb(neb_i,2), ...
                                  neb(neb_i,3))
                     distances(neb(neb_i,1),neb(neb_i,2), ...
@@ -86,6 +90,7 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         clear newCenters;
         
     end
+
 end
 
 function seeds = getSeeds(imageMat, step)
@@ -215,6 +220,7 @@ function grads = gradientApprox(im,seeds)
 %of the seeds values so that we can choose the lowest gradient
 %value
     grads = zeros(size(im));
+    
     for i = 1:size(seeds,1)
         
         if(grads(seeds(i,1),seeds(i,2),seeds(i,3)) ~= 0)
@@ -227,12 +233,12 @@ function grads = gradientApprox(im,seeds)
         for ne_i = 1:size(ne,1)
             diffsum = diffsum + abs(im(seeds(i,1),seeds(i,2),seeds(i,3))...
                                     - im(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3)));
-            
             if(grads(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3)) ~= 0)
                 continue
             end
             
-            nene = getNeighbors(im, ne(ne_i,1),ne(ne_i,2),ne(ne_i,3));
+            nene = getNeighbors(im, ne(ne_i,1),ne(ne_i,2),ne(ne_i, ...
+                                                             3));
             ne_diffsum = 0;
             
             for nene_i = 1:size(nene,1)
@@ -240,15 +246,13 @@ function grads = gradientApprox(im,seeds)
                     abs(im(ne(ne_i, 1),ne(ne_i,2),ne(ne_i,3)) - ...
                         im(nene(nene_i,1),nene(nene_i,2), ...
                            nene(nene_i,3)));
-                
             end
             
             grads(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3)) = ne_diffsum/ ...
                 size(nene,1);
             clear nene
         end
-        grads(seeds(i,1),seeds(i,2),seeds(i,3)) = diffsum/size(ne, ...
-                                                          1);
+        grads(seeds(i,1),seeds(i,2),seeds(i,3)) = diffsum/size(ne, 1);
         clear ne
     end
 end

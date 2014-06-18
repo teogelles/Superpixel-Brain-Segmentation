@@ -35,26 +35,26 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
                                    res);
 
-    numSuperVoxels = 50;
-    shapeParam = 20;
-    superPixels = SLIC_3D(X{1},numSuperVoxels, shapeParam);
+    % numSuperVoxels = 200;
+    % shapeParam = 20;
+    % superPixels = SLIC_3D(X{1},numSuperVoxels, shapeParam);
     
-    % figure
-    % image(X{1}(:,:,size(X{1}, 3)/2));
-    % colormap gray
-    % figure
-    % image(superPixels(:,:,size(superPixels, 3)/2));
-    % colormap gray
+    % % figure
+    % % image(X{1}(:,:,size(X{1}, 3)/2));
+    % % colormap gray
+    % % figure
+    % % image(superPixels(:,:,size(superPixels, 3)/2));
+    % % colormap gray
         
-    slicNii = make_nii(superPixels);
-    save_nii(slicNii, strcat('slic', '-', int2str(numSuperVoxels), ...
-                             '-', int2str(shapeParam), '-', int2str(res), ...
-                             '-', '1', '.nii'));
-    xNii = make_nii(X{1});
-    save_nii(xNii, strcat('x', '-', int2str(numSuperVoxels), ...
-                             '-', int2str(shapeParam), '-', int2str(res), ...
-                             '-', '1', '.nii'));
-    throw('Stupid exception');
+    % slicNii = make_nii(superPixels);
+    % save_nii(slicNii, strcat('slic', '-', int2str(numSuperVoxels), ...
+    %                          '-', int2str(shapeParam), '-', int2str(res), ...
+    %                          '-', '1', '.nii'));
+    % xNii = make_nii(X{1});
+    % save_nii(xNii, strcat('x', '-', int2str(numSuperVoxels), ...
+    %                          '-', int2str(shapeParam), '-', int2str(res), ...
+    %                          '-', '1', '.nii'));
+    % throw('Stupid exception');
     
     % Get data for Cross Folding
     [testing, training] = makeCrossFold(fold, nExamples);
@@ -256,7 +256,7 @@ function [origX, origY, Zmask, X, y] = maskZeros(X, y, nExamples)
     Zmask = cell(nExamples,1);
     newX = cell(nExamples,1);
     newY = cell(nExamples,1);
-    for i = 1:nExamples
+    parfor i = 1:nExamples
         Zmask{i} = X{i} ~= 0;
         newX{i} = X{i}(Zmask{i});
         newY{i} = y{i}(Zmask{i});
@@ -276,7 +276,7 @@ function M = detect_skull(I)
 
     [h,w,r] = size(I);
 
-    for iCount = 1:r,
+    parfor iCount = 1:r,
         J = imfill(I(:,:,iCount),'holes');
         K = im2bw(J/max(J(:)), 0.3*graythresh(J(:)/max(J(:))));
         [L1,N] = bwlabel(K);
@@ -488,7 +488,7 @@ function [X,y,nExamples] = load_nifti(imDir,res)
     nExamples = 18; %The IBSR_nifti_stripped directory has 18 image
     X = cell(nExamples,1);
     y = cell(nExamples,1);
-    for i = 1:nExamples
+    parfor i = 1:nExamples
         
         fprintf('.');
         if i < 10
@@ -514,7 +514,7 @@ function [X,y,nExamples] = load_nifti(imDir,res)
     
     fprintf('\n');
     
-    for i = 1:nExamples
+    parfor i = 1:nExamples
         X{i} = X{i}(1:res:end,1:res:end,1:res:end);
         y{i} = y{i}(1:res:end,1:res:end,1:res:end);
     end
@@ -623,7 +623,7 @@ function [WMMin, GMMin, CFMin, BGMin] = min_bins(X, y, nExamples, training)
     WM = 0;
     CF = 0;
     BG = 0;
-    for i = 1:length(training)
+    parfor i = 1:length(training)
         GMbin = (y{training(i)} == 3);
         GM = GM + sum(sum(X{training(i)} .* GMbin))/sum(sum(GMbin)); %average GM value
         
@@ -654,7 +654,7 @@ function [WMMin, GMMin, CFMin, BGMin] = min_bins(X, y, nExamples, training)
     CFMin = cell(nExamples,1);
     p = 1;
     figure;
-    for i = 1:nExamples
+    parfor i = 1:nExamples
         WMDif = abs(X{i} - WM);
         GMDif = abs(X{i} - GM);
         BGDif = abs(X{i} - BG);
@@ -965,7 +965,7 @@ function [origX, origY, Zmask, ZmaskFlat, X, y, nStates, sizes, ...
     global dir paramDir restarting;
     
     sizes = zeros(nExamples);
-    for i=1:nExamples
+    parfor i=1:nExamples
         [nRows,nCols,nSlices] = size(X{i});
         sizes(i) = nRows*nCols*nSlices;
     end
