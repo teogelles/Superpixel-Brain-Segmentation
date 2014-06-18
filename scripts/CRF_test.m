@@ -27,21 +27,16 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     fold = leaveOut + 1; % Because the condor scripts start 1 step lower
     
     global dir paramDir restarting;
-    [dir, paramDir, restarting] = makeDirs(fold, leaveOut, res);
+    [dir, paramDir, restarting] = makeDirs(fold, leaveOut, res, ...
+                                           usePriors, useCdist);
     
 
     % Load IBSR Data
     [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
                                    res);
     
-    superPixels = SLIC_3D(X{1},50,20);
-    
-    figure
-    image(X{1}(:,:,15));
-    colormap gray
-    figure
-    image(superPixels(:,:,15));
-    colormap gray
+    % Comment this section out to work with running the condor scripts
+    superVoxels = SLIC_3D(X{1},200,10);
     
     throw('Stupid exception');
     
@@ -848,7 +843,7 @@ function X = load_spm8_priors(res, tissueNum, imageNum)
 end
 
 function [dir, paramDir, restarting] = makeDirs(fold, leaveOut, ...
-                                                res)
+                                                res, usePriors, useCdist)
     global dir paramDir restarting;
     
     f = 1;
@@ -859,6 +854,8 @@ function [dir, paramDir, restarting] = makeDirs(fold, leaveOut, ...
     while ~found
         dir = strcat('/scratch/tgelles1/summer2014/testing/', ...
                      int2str(fold),'res',int2str(res),'num', ...
+                     'pr',int2str(usePriors),...
+                     'Cd',int2str(useCdist),...
                      int2str(f),'/'); %directory for temp files
         paramDir = dir; %directory for parameter filesx
         
@@ -878,6 +875,8 @@ function [dir, paramDir, restarting] = makeDirs(fold, leaveOut, ...
     if f > 1
         dir = strcat('/scratch/tgelles1/summer2014/testing/', ...
                      int2str(fold),'res',int2str(res),'num', ...
+                     'pr',int2str(usePriors),...
+                     'Cd',int2str(useCdist),...
                      int2str(f-1),'/'); %directory for temp files
         paramDir = dir; %directory for parameter files
         restarting = 1;
