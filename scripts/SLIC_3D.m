@@ -14,8 +14,18 @@
 % Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
-
-function [labels,borders] = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
+function [labels, borders] = SLIC_3D(imageMat, numSuperVoxels, ...
+                                     shapeParam, numIters)
+% SLIC_3D - Get a supervoxelated image
+%
+% @param imageMat - The image to be supervoxelated as a matrix
+% @param numSuperVoxels - The number of supervoxels to use (approximate)
+% @param shapeParam - Weight used to change the importance of
+% Euclidean distance in the calculateDistance function (which uses
+% both Euclidean distance and a color metric)
+% @param numIters - The number of iterations to run the SLIC loop
+%
+% @return - The labels for the supervoxels of imageMat as a matrix
     
     if ~(shapeParam) || (shapeParam < 0)
         shapeParam = 20;
@@ -29,6 +39,7 @@ function [labels,borders] = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     numVoxels = size(imageMat,1)*size(imageMat,2)*size(imageMat,3);
     % in the original cpp code, they add an odd .5 to S, but we're
     % not sure why, so we're going to leave that off for now
+    %    step = .5 + (numVoxels/numSuperVoxels)^(1/3);
     step = (numVoxels/numSuperVoxels)^(1/3);
     
     % Initialize superpixel centers and adjust to neighbor point of
@@ -40,32 +51,42 @@ function [labels,borders] = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     labels = -1*ones(size(imageMat));
     distances = Inf*ones(size(imageMat));
     
-    for iterations = 1:10
+    
+    imageMatSize = [size(imageMat,1),size(imageMat,2),size(imageMat,3)];
+    
+    fprintf('Supervoxelating Image');
+    % The algorithm technically calls for repeating this loop until
+    % the change in placement of the centers is low, but as the
+    % authors say 10 iterations generally suffices
+    for iterations = 1:numIters
         
+        fprintf('.');
         centerTracker = zeros(size(centers,1),5);
-        
+
         for c = 1:size(centers,1)
-            neb = getNeighborhood(imageMat,step,centers(c,1), ...
-                                           centers(c,2),centers(c,3));
-            for neb_i = 1:size(neb,1)
-                D = calculateDistance(imageMat,centers(c,:), ...
-                                      neb(neb_i,:),shapeParam, ...
-                                      step);                
-                if D < distances(neb(neb_i,1),neb(neb_i,2), ...
-                                 neb(neb_i,3))
-                    distances(neb(neb_i,1),neb(neb_i,2), ...
-                              neb(neb_i,3)) = D;
-                    labels(neb(neb_i,1),neb(neb_i,2), ...
-                           neb(neb_i,3)) = c;
-                    centerTracker(c,1) = centerTracker(c,1) + ...
-                        neb(neb_i,1);
-                    centerTracker(c,2) = centerTracker(c,2) + ...
-                        neb(neb_i,2);
-                    centerTracker(c,3) = centerTracker(c,3) + ...
-                        neb(neb_i,3);
-                    centerTracker(c,4) = centerTracker(c,4) + ...
-                        imageMat(neb(neb_i,1),neb(neb_i,2),neb(neb_i,3));
-                    centerTracker(c,5) = centerTracker(c,5) + 1;
+            
+            neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
+                                                   centers(c, 2), ...
+                                                   centers(c, 3));            
+            for i = neb(1):neb(2)
+                for j = neb(3):neb(4)
+                    for k = neb(5):neb(6)
+                        
+                        curVox = [i j k];
+                        D = calculateDistance(imageMat,centers(c,:), ...
+                                              curVox,shapeParam,step);
+                        if D < distances(i,j,k)
+                            
+                            distances(i, j, k) = D;
+                            labels(i, j, k) = c;
+                            centerTracker(c,1) = centerTracker(c,1) + i;
+                            centerTracker(c,2) = centerTracker(c,2) + j;
+                            centerTracker(c,3) = centerTracker(c,3) + k;
+                            centerTracker(c,4) = centerTracker(c,4) ...
+                                + imageMat(i, j, k);
+                            centerTracker(c,5) = centerTracker(c,5) + 1;
+                        end
+                    end
                 end
             end
         end
@@ -82,22 +103,25 @@ function [labels,borders] = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         end
         
         centers = newCenters;
-        clear newCenters;
-        
     end
-    
-    borders = getBorders(imageMat, labels, 1);
 
+    fprintf('\n');
+    
+    borders = getBorders(imageMat, labels, 0);
 end
 
 function seeds = getSeeds(imageMat, step)
 % getSeeds takes the original image and the step size and returns a
 % matriz of all the seed locations for starting the superpixel algo
+    
     numSeeds = 0;
     n = 1;
-    xstrips = int32(.5 + size(imageMat,1)/step);
-    ystrips = int32(.5 + size(imageMat,2)/step);
-    zstrips = int32(.5 + size(imageMat,3)/step);
+    %    xstrips = int32(.5 + size(imageMat,1)/step);
+    %    ystrips = int32(.5 + size(imageMat,2)/step);
+    %    zstrips = int32(.5 + size(imageMat,3)/step);
+    xstrips = int32(size(imageMat,1)/step);
+    ystrips = int32(size(imageMat,2)/step);
+    zstrips = int32(size(imageMat,3)/step);
     
     xerr = size(imageMat,1) - step*xstrips;
     if (xerr < 0)
@@ -162,7 +186,7 @@ end
 
 function ne = getNeighbors(mat, i, j, k)
     num_ne = 1;
-    % We claculate the number of neighbors so that we can
+    % We calculate the number of neighbors so that we can
     % preallocate the space for the neighbors array
     if i == 1
         indi = [0 1];
@@ -247,6 +271,7 @@ function grads = gradientApprox(im,seeds)
             
             grads(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3)) = ne_diffsum/ ...
                 size(nene,1);
+            
             clear nene
         end
         grads(seeds(i,1),seeds(i,2),seeds(i,3)) = diffsum/size(ne, 1);
@@ -334,9 +359,49 @@ function ne = getNeighborhood(mat,sq_rad,i,j,k)
 end
 
 function dist = calculateDistance(mat,cent,neb,m,s)
-    dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2 + (cent(3)-neb(3))^2;
+% calculateDistance - Returns the distance between a pixel and its
+% center with the special SLIC metric that incorporates both
+% Euclidean distance and color
+    
+
+    dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2 + (cent(3)-neb(3))^2; ...
+    % Square of Euclidean distance
+    
     dcq = (cent(4)-mat(neb(1),neb(2),neb(3)))^2;
+    % Square of color distance
+    
+    
     dist = sqrt(dcq + (dsq/(s^2))*(m^2));
+    % Overall distance
+end
+
+
+
+function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, ...
+                                                              i, j, ...
+                                                              k)
+    neighborhoodEnds = [floor(i-radius),ceil(i+radius),floor(j-radius), ...
+                        ceil(j + radius), floor(k - radius), ceil(k + radius)];
+    
+    if neighborhoodEnds(1) < 1
+        neighborhoodEnds(1) = 1;
+    end
+    if neighborhoodEnds(3) < 1
+        neighborhoodEnds(3) = 1;
+    end
+    if neighborhoodEnds(5) < 1
+        neighborhoodEnds(5) = 1;
+    end
+    
+    if neighborhoodEnds(2) > imageMatSize(1)
+        neighborhoodEnds(2) = imageMatSize(1);
+    end
+    if neighborhoodEnds(4) > imageMatSize(2);
+        neighborhoodEnds(4) = imageMatSize(2);
+    end
+    if neighborhoodEnds(6) > imageMatSize(3);
+        neighborhoodEnds(6) = imageMatSize(3);
+    end
 end
 
 function borders = getBorders(im,labels,fillSetter)
@@ -350,11 +415,25 @@ function borders = getBorders(im,labels,fillSetter)
     
     borders = im;
     
+    totIters = (size(labels, 1) - 2) * (size(labels, 2) - 2) * ...
+        (size(labels, 3) - 2);
+    
+    iter10Percent = floor(totIters / 10);
+    
+    iterCounter = 0;
     % We don't care about borders on the edge of the image, so we
     % start one voxel in
+    fprintf('Getting SLIC Border Overlay');
     for i = 2:(size(labels, 1)-1)
         for j = 2:(size(labels, 2)-1)
             for k = 2:(size(labels, 3)-1)
+                
+                iterCounter = iterCounter + 1;
+                if (iterCounter == iter10Percent)
+                    fprintf('.')
+                    iterCounter = 0;
+                end
+                
                 breaker = 0;
                 for sub_i = [i-1 i+1]
                     if labels(sub_i,j,k) ~= labels(i,j,k)
@@ -385,4 +464,6 @@ function borders = getBorders(im,labels,fillSetter)
             end
         end
     end
+    
+    fprintf('\n');
 end

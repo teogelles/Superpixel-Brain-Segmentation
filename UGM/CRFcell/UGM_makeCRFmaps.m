@@ -15,15 +15,15 @@ nStates = nStates(1);
 
 nNodeFeatures = size(Xnode,2);
 nEdgeFeatures = size(Xedge,2);
-fprintf('nstates: %d, size edgemap: %d\n', nStates,nStates*nStates*nEdges*nEdgeFeatures); 
+%fprintf('nstates: %d, size edgemap: %d\n', nStates,nStates*nStates*nEdges*nEdgeFeatures); 
 nodeMap = zeros(nNodes,nStates,nNodeFeatures,'int32');
-whos
+%whos
 edgeMap = zeros(nStates,nStates,nEdges,nEdgeFeatures,'int32');
-fprintf('map1');
+%fprintf('map1');
 if edgeStruct.useMex
    UGM_makeCRFmapsC(nodeMap,edgeMap,int32(ising),int32(tied),int32(paramLastState));
 else
-    fprintf('map2');
+    %   fprintf('map2');
     if tied
         fNum = 1;
         for f = 1:nNodeFeatures
@@ -43,7 +43,7 @@ else
         nodeMap(:) = 1:numel(nodeMap);
     end
     nNodeParams = max(nodeMap(:));
-    fprintf('map3');
+    %    fprintf('map3');
     if tied
         switch ising
             case 1
@@ -108,5 +108,5 @@ else
         end
     end
 end
-fprintf('map4');
+%fprintf('map4');
 w = zeros(max(edgeMap(:)),1);

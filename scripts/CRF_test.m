@@ -129,8 +129,8 @@ function [results tani] = vOverlap(L,R)
     results = [0 0 0];
     tani = [0 0 0];
     for i=2:max(max(max(R)))
-        max(max(max(R==i)))
-        max(max(max(L==i)))
+        max(max(max(R==i)));
+        max(max(max(L==i)));
         V1 = sum(sum(sum(L == i)));
         V2 = sum(sum(sum(R == i)));
         dif = ismember(L,i)+ismember(R,i);
@@ -193,7 +193,6 @@ function avg = decode(w,examples,testing,y,plotTitle, ZmaskFlat, plots, dir)
         %yDecode = int32(UGM_Decode_MaxOfMarginals(nodePot,edgePot,edgeStruct,@UGM_Infer_LBP));
         %yDecode2 = UGM_Infer_LBP(nodePot,edgePot,examples{j}.edgeStruct);
         yDecode = UGM_Decode_ICMrestart(nodePot,edgePot,examples{j}.edgeStruct,30); %last value is number of restarts
-        size(yDecode(yDecode==3))
         yDecode = reImage(yDecode, ZmaskFlat{j});
         yDecode(yDecode == 0) = 1;
         
@@ -215,7 +214,6 @@ function avg = decode(w,examples,testing,y,plotTitle, ZmaskFlat, plots, dir)
             imagesc(reshape(yDecode(:,:,3),nRows,nCols));
             colormap gray
         end
-        size(yDecode)
         
         %Evaluate
         
