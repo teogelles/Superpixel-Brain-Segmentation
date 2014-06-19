@@ -72,16 +72,13 @@ function [labels,borders] = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         
         newCenters = zeros(size(centers));
         
-        for i = 1:size(centerTracker,1)
+        parfor i = 1:size(centerTracker,1)
             if (centerTracker(i,5) == 0)
                 newCenters(i,:) = centers(i,:);
                 continue
             end
             
-            newCenters(i,1) = centerTracker(i,1)/centerTracker(i, 5);
-            newCenters(i,2) = centerTracker(i,2)/centerTracker(i, 5);
-            newCenters(i,3) = centerTracker(i,3)/centerTracker(i, 5);
-            newCenters(i,4) = centerTracker(i,4)/centerTracker(i, 5);
+            newCenters(i,:) = centerTracker(i,1:4)./centerTracker(i, 5);
         end
         
         centers = newCenters;
@@ -89,7 +86,7 @@ function [labels,borders] = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         
     end
     
-    borders = getBorders(imageMat, labels, 0);
+    borders = getBorders(imageMat, labels, 1);
 
 end
 
