@@ -14,7 +14,8 @@
 % Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
-function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
+function [labels, borders] = SLIC_3D(imageMat, numSuperVoxels, ...
+                                     shapeParam, numIters)
 % SLIC_3D - Get a supervoxelated image
 %
 % @param imageMat - The image to be supervoxelated as a matrix
@@ -22,6 +23,7 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
 % @param shapeParam - Weight used to change the importance of
 % Euclidean distance in the calculateDistance function (which uses
 % both Euclidean distance and a color metric)
+% @param numIters - The number of iterations to run the SLIC loop
 %
 % @return - The labels for the supervoxels of imageMat as a matrix
     
@@ -52,11 +54,11 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     
     imageMatSize = [size(imageMat,1),size(imageMat,2),size(imageMat,3)];
     
-    fprintf('Superpixelating Images');
+    fprintf('Supervoxelating Image');
     % The algorithm technically calls for repeating this loop until
     % the change in placement of the centers is low, but as the
     % authors say 10 iterations generally suffices
-    for iterations = 1:10
+    for iterations = 1:numIters
         
         fprintf('.');
         centerTracker = zeros(size(centers,1),5);
@@ -88,7 +90,6 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
                 end
             end
             
-            clear(neb);
         end
         
         newCenters = zeros(size(centers));
@@ -106,10 +107,11 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         end
         
         centers = newCenters;
-        clear newCenters;
     end
-    
+
     fprintf('\n');
+    
+    borders = getBorders(imageMat, labels, 0);
 end
 
 function seeds = getSeeds(imageMat, step)
@@ -406,5 +408,67 @@ function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, ...
         neighborhoodEnds(6) = imageMatSize(3);
     end
 end
+
+function borders = getBorders(im,labels,fillSetter)
+% If fill = 0, set the borders on the image to 0, else set them to
+% inf
+    if ~fillSetter
+        fill = 0;
+    else
+        fill = inf;
+    end
     
-                                                              
+    borders = im;
+    
+    totIters = (size(labels, 1) - 2) * (size(labels, 2) - 2) * ...
+        (size(labels, 3) - 2);
+    
+    iter10Percent = floor(totIters / 10);
+    
+    iterCounter = 0;
+    % We don't care about borders on the edge of the image, so we
+    % start one voxel in
+    fprintf('Getting SLIC Border Overlay');
+    for i = 2:(size(labels, 1)-1)
+        for j = 2:(size(labels, 2)-1)
+            for k = 2:(size(labels, 3)-1)
+                
+                iterCounter = iterCounter + 1;
+                if (iterCounter == iter10Percent)
+                    fprintf('.')
+                    iterCounter = 0;
+                end
+                
+                breaker = 0;
+                for sub_i = [i-1 i+1]
+                    if labels(sub_i,j,k) ~= labels(i,j,k)
+                        borders(i,j,k) = fill;
+                        breaker = 1;
+                        break
+                    end
+                end
+                if breaker
+                    continue
+                end
+                for sub_j = [j-1 j+1]
+                    if labels(i,sub_j,k) ~= labels(i,j,k)
+                        borders(i,j,k) = fill;
+                        breaker = 1;
+                        break
+                    end
+                end
+                if breaker
+                    continue
+                end
+                for sub_k = [k-1 k+1]
+                    if labels(i,j,sub_k) ~= labels(i,j,k)
+                        borders(i,j,k) = fill;
+                        break
+                    end
+                end                                   
+            end
+        end
+    end
+    
+    fprintf('\n');
+end

@@ -34,26 +34,6 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     % Load IBSR Data
     [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
                                    res);
-    numSuperVoxels = 100;
-    shapeParam = 20;
-    superPixels = SLIC_3D(X{1},numSuperVoxels, shapeParam);
-    
-    % figure
-    % image(X{1}(:,:,size(X{1}, 3)/2));
-    % colormap gray
-    % figure
-    % image(superPixels(:,:,size(superPixels, 3)/2));
-    % colormap gray
-        
-    slicNii = make_nii(superPixels);
-    save_nii(slicNii, strcat('slic', '-', int2str(numSuperVoxels), ...
-                             '-', int2str(shapeParam), '-', int2str(res), ...
-                             '-', '1', '.nii'));
-    xNii = make_nii(X{1});
-    save_nii(xNii, strcat('x', '-', int2str(numSuperVoxels), ...
-                             '-', int2str(shapeParam), '-', int2str(res), ...
-                             '-', '1', '.nii'));
-    throw('Stupid exception');
     
     % Get data for Cross Folding
     [testing, training] = makeCrossFold(fold, nExamples);
@@ -128,8 +108,8 @@ function [results tani] = vOverlap(L,R)
     results = [0 0 0];
     tani = [0 0 0];
     for i=2:max(max(max(R)))
-        max(max(max(R==i)))
-        max(max(max(L==i)))
+        max(max(max(R==i)));
+        max(max(max(L==i)));
         V1 = sum(sum(sum(L == i)));
         V2 = sum(sum(sum(R == i)));
         dif = ismember(L,i)+ismember(R,i);
@@ -192,7 +172,6 @@ function avg = decode(w,examples,testing,y,plotTitle, ZmaskFlat, plots, dir)
         %yDecode = int32(UGM_Decode_MaxOfMarginals(nodePot,edgePot,edgeStruct,@UGM_Infer_LBP));
         %yDecode2 = UGM_Infer_LBP(nodePot,edgePot,examples{j}.edgeStruct);
         yDecode = UGM_Decode_ICMrestart(nodePot,edgePot,examples{j}.edgeStruct,30); %last value is number of restarts
-        size(yDecode(yDecode==3))
         yDecode = reImage(yDecode, ZmaskFlat{j});
         yDecode(yDecode == 0) = 1;
         
@@ -214,7 +193,6 @@ function avg = decode(w,examples,testing,y,plotTitle, ZmaskFlat, plots, dir)
             imagesc(reshape(yDecode(:,:,3),nRows,nCols));
             colormap gray
         end
-        size(yDecode)
         
         %Evaluate
         
@@ -515,7 +493,6 @@ function [X,y,nExamples] = load_nifti(imDir,res)
     
     for i = 1:nExamples
         X{i} = X{i}(1:res:end,1:res:end,1:res:end);
-        X{i} = cropBlack(X{i});
         y{i} = y{i}(1:res:end,1:res:end,1:res:end);
     end
 end

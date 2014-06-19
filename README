@@ -18,18 +18,16 @@ Directory Listing:
 	    Currently mostly a copy of the work done by Christopher
 	    Magnano
 
-./UGM - Source code for the UGM segmentation software package, which contains
-      	the CRF utilities used for research
-
 ./contourRelaxedSuperpixels-0.1-r2 - Source code for the contour-relaxed
 				     superpixels software, which takes
 				     png images and creates superpixeled
 				     versions of the images
 
-/UGM - MATLAB library for doing some of the primary functionality of our main
-       code. This is the code that we have edited (somewhat) for functionality,
-       efficiency, or appearance. The original code can be found online and
-       slightly modified code can be found in the /acmi/chris13/UGM directory
+/UGM - MATLAB library for doing some of the primary functionality of
+       our main code. This is the code that we have edited (somewhat)
+       for functionality, efficiency, or appearance. The original code
+       can be found online and slightly modified code can be found in
+       the /acmi/chris13/UGM directory
 
 /SLICSuperPixelsAndSuperVoxelsCode - Code from the original SLIC developers.
            Unfortunately this is cpp code that can only be run in windows,
