@@ -49,6 +49,9 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     labels = -1*ones(size(imageMat));
     distances = Inf*ones(size(imageMat));
     
+    
+    imageMatSize = [size(imageMat,1),size(imageMat,2),size(imageMat,3)];
+    
     fprintf('Superpixelating Images');
     % The algorithm technically calls for repeating this loop until
     % the change in placement of the centers is low, but as the
@@ -59,29 +62,33 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         centerTracker = zeros(size(centers,1),5);
 
         for c = 1:size(centers,1)
-
-            neb = getNeighborhood(imageMat,step,centers(c,1), ...
-                                           centers(c,2),centers(c,3));
-            for neb_i = 1:size(neb,1)
-                D = calculateDistance(imageMat,centers(c,:), ...
-                                      neb(neb_i,:),shapeParam,step);
-                if D < distances(neb(neb_i,1),neb(neb_i,2), ...
-                                 neb(neb_i,3))
-                    distances(neb(neb_i,1),neb(neb_i,2), ...
-                              neb(neb_i,3)) = D;
-                    labels(neb(neb_i,1),neb(neb_i,2), ...
-                           neb(neb_i,3)) = c;
-                    centerTracker(c,1) = centerTracker(c,1) + ...
-                        neb(neb_i,1);
-                    centerTracker(c,2) = centerTracker(c,2) + ...
-                        neb(neb_i,2);
-                    centerTracker(c,3) = centerTracker(c,3) + ...
-                        neb(neb_i,3);
-                    centerTracker(c,4) = centerTracker(c,4) + ...
-                        imageMat(neb(neb_i,1),neb(neb_i,2),neb(neb_i,3));
-                    centerTracker(c,5) = centerTracker(c,5) + 1;
+            
+            neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
+                                                   centers(c, 2), ...
+                                                   centers(c, 3));            
+            for i = neb(1):neb(2)
+                for j = neb(3):neb(4)
+                    for k = neb(5):neb(6)
+                        
+                        curVox = [i j k];
+                        D = calculateDistance(imageMat,centers(c,:), ...
+                                              curVox,shapeParam,step);
+                        if D < distances(i,j,k)
+                                         
+                            distances(i, j, k) = D;
+                            labels(i, j, k) = c;
+                            centerTracker(c,1) = centerTracker(c,1) + i;
+                            centerTracker(c,2) = centerTracker(c,2) + j;
+                            centerTracker(c,3) = centerTracker(c,3) + k;
+                            centerTracker(c,4) = centerTracker(c,4) ...
+                                + imageMat(i, j, k);
+                            centerTracker(c,5) = centerTracker(c,5) + 1;
+                        end
+                    end
                 end
             end
+            
+            clear(neb);
         end
         
         newCenters = zeros(size(centers));
@@ -100,7 +107,6 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         
         centers = newCenters;
         clear newCenters;
-        
     end
     
     fprintf('\n');
@@ -371,3 +377,34 @@ function dist = calculateDistance(mat,cent,neb,m,s)
     dist = sqrt(dcq + (dsq/(s^2))*(m^2));
     % Overall distance
 end
+
+
+
+function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, ...
+                                                              i, j, ...
+                                                              k)
+    neighborhoodEnds = [floor(i-radius),ceil(i+radius),floor(j-radius), ...
+                        ceil(j + radius), floor(k - radius), ceil(k + radius)];
+    
+    if neighborhoodEnds(1) < 1
+        neighborhoodEnds(1) = 1;
+    end
+    if neighborhoodEnds(3) < 1
+        neighborhoodEnds(3) = 1;
+    end
+    if neighborhoodEnds(5) < 1
+        neighborhoodEnds(5) = 1;
+    end
+    
+    if neighborhoodEnds(2) > imageMatSize(1)
+        neighborhoodEnds(2) = imageMatSize(1);
+    end
+    if neighborhoodEnds(4) > imageMatSize(2);
+        neighborhoodEnds(4) = imageMatSize(2);
+    end
+    if neighborhoodEnds(6) > imageMatSize(3);
+        neighborhoodEnds(6) = imageMatSize(3);
+    end
+end
+    
+                                                              
