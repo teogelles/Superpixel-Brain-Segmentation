@@ -15,7 +15,7 @@
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
 
-function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
+function [labels,borders] = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
     
     if ~(shapeParam) || (shapeParam < 0)
         shapeParam = 20;
@@ -25,8 +25,6 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         numSuperVoxels = 200;
         fprintf('Setting numSuperVoxels to defualt of 200');
     end
-    
-    mutexInit();
     
     numVoxels = size(imageMat,1)*size(imageMat,2)*size(imageMat,3);
     % in the original cpp code, they add an odd .5 to S, but we're
@@ -90,6 +88,8 @@ function labels = SLIC_3D(imageMat, numSuperVoxels, shapeParam)
         clear newCenters;
         
     end
+    
+    borders = getBorders(imageMat, labels, 0);
 
 end
 
@@ -340,4 +340,52 @@ function dist = calculateDistance(mat,cent,neb,m,s)
     dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2 + (cent(3)-neb(3))^2;
     dcq = (cent(4)-mat(neb(1),neb(2),neb(3)))^2;
     dist = sqrt(dcq + (dsq/(s^2))*(m^2));
+end
+
+function borders = getBorders(im,labels,fillSetter)
+% If fill = 0, set the borders on the image to 0, else set them to
+% inf
+    if ~fillSetter
+        fill = 0;
+    else
+        fill = inf;
+    end
+    
+    borders = im;
+    
+    % We don't care about borders on the edge of the image, so we
+    % start one voxel in
+    for i = 2:(size(labels, 1)-1)
+        for j = 2:(size(labels, 2)-1)
+            for k = 2:(size(labels, 3)-1)
+                breaker = 0;
+                for sub_i = [i-1 i+1]
+                    if labels(sub_i,j,k) ~= labels(i,j,k)
+                        borders(i,j,k) = fill;
+                        breaker = 1;
+                        break
+                    end
+                end
+                if breaker
+                    continue
+                end
+                for sub_j = [j-1 j+1]
+                    if labels(i,sub_j,k) ~= labels(i,j,k)
+                        borders(i,j,k) = fill;
+                        breaker = 1;
+                        break
+                    end
+                end
+                if breaker
+                    continue
+                end
+                for sub_k = [k-1 k+1]
+                    if labels(i,j,sub_k) ~= labels(i,j,k)
+                        borders(i,j,k) = fill;
+                        break
+                    end
+                end                                   
+            end
+        end
+    end
 end
