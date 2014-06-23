@@ -47,6 +47,8 @@ function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperV
     centers = getSeeds(imageMat,step);
     centers = adjustSeeds(imageMat, centers);
     
+    fprintf('Number of Centers Used: %d\n', size(centers, 1));
+    
     % Initialize labels and distance matrices
     labels = -1*ones(size(imageMat));
     distances = Inf*ones(size(imageMat));
@@ -57,7 +59,8 @@ function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperV
     fprintf('Supervoxelating Image');
     % The algorithm technically calls for repeating this loop until
     % the change in placement of the centers is low, but as the
-    % authors say 10 iterations generally suffices
+    % authors say 10 iterations generally suffices.  We use an
+    % adjustable amount
     for iterations = 1:numIters
         
         fprintf('.');
@@ -67,7 +70,7 @@ function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperV
             
             neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
                                                    centers(c, 2), ...
-                                                   centers(c, 3));            
+                                                   centers(c, 3));
             for i = neb(1):neb(2)
                 for j = neb(3):neb(4)
                     for k = neb(5):neb(6)

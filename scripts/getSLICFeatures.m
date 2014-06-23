@@ -1,4 +1,4 @@
-function getSLICFeatures(labels, centers, centerTracker, filename)
+function featureList = getSLICFeatures(labels, centers, centerTracker, filename)
     
     
     fprintf('Getting SLIC Features\n');
@@ -32,6 +32,20 @@ function getSLICFeatures(labels, centers, centerTracker, filename)
     fprintf('Intensity Variance: %f\n', varIntensity);
     fprintf('Volume Variance: %f\n', varVolume);
     fprintf('Surface Area Variance: %f\n', varSurfaceArea);
+    
+    featureList = cell(6, 2);
+    featureList{1, 1} = 'Average Intensity';
+    featureList{1, 2} = avgIntensity;
+    featureList{2, 1} = 'Avererage Volume';
+    featureList{2, 2} = avgVol;
+    featureList{3, 1} = 'Average Surface Area';
+    featureList{3, 2} = avgSurfaceArea;
+    featureList{4, 1} = 'Intensity Variance';
+    featureList{4, 2} = varIntensity;
+    featureList{5, 1} = 'Volume Variance';
+    featureList{5, 2} = varVolume;
+    featureList{6, 1} = 'Surface Area Variance';
+    featureList{6, 2} = varSurfaceArea;
 end
 
 function isSV = isSurfaceVoxel(i, j, k, labels)
