@@ -4,9 +4,10 @@ function runSLIC(res, numSuperVoxels, shapeParam, numIters, imageNum)
     X = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
                    res, imageNum);
     
-    [superPixels border] = SLIC_3D(X,numSuperVoxels, shapeParam, numIters);
+    [labels border centers centerTracker] = SLIC_3D(X,numSuperVoxels, ...
+                                                      shapeParam, numIters);
         
-    slicNii = make_nii(superPixels);
+    slicNii = make_nii(labels);
     borderNii = make_nii(border);
     xNii = make_nii(X);
     
@@ -29,6 +30,10 @@ function runSLIC(res, numSuperVoxels, shapeParam, numIters, imageNum)
     save_nii(slicNii, slicAddr);
     save_nii(borderNii, borderAddr);
     save_nii(xNii, xAddr);
+    
+    
+    featureFilename = '/';
+    getSLICFeatures(labels, centers, centerTracker, featureFilename);
 end
 
 

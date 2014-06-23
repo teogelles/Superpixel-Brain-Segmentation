@@ -14,7 +14,7 @@
 % Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
-function [labels, borders] = SLIC_3D(imageMat, numSuperVoxels, ...
+function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperVoxels, ...
                                      shapeParam, numIters)
 % SLIC_3D - Get a supervoxelated image
 %
