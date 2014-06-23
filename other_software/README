@@ -1,0 +1,29 @@
+Swarthmore Summer 2014 CS Research
+Prof. Ameet Soni
+Students: Teo Gelles & Andrew Gilchrist-Scott
+Last Updated: 06/23/2014
+
+
+Directory: /acmi/summer2014/other_software
+
+This directory contains the source for packages that we either considered
+using for our research or inspired some aspect of our research, but which
+is not directly used.
+
+./contourRelaxedSuperpixels-0.1-r2 - Source code for the contour-relaxed
+				     superpixels software, which takes
+				     png images and creates superpixeled
+				     versions of the images.  Not used
+				     because it does not have a 3D
+				     implementation
+
+
+
+/SLICSuperPixelsAndSuperVoxelsCode - Code from the original SLIC developers.
+           Unfortunately this is cpp code that can only be run in windows,
+	   but it still serves as a good reference to understand the algo.
+
+/vlfeat-0.9.18 - MATLAB package of different image processing
+	         softwares, The original paper describing this can be
+	         found at:
+	         http://www.robots.ox.ac.uk/~vedaldi/assets/pubs/vedaldi10vlfeat.pdf
