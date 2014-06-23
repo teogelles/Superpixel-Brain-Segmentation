@@ -32,6 +32,8 @@ function getSLICFeatures(labels, centers, centerTracker, filename)
     fprintf('Intensity Variance: %f\n', varIntensity);
     fprintf('Volume Variance: %f\n', varVolume);
     fprintf('Surface Area Variance: %f\n', varSurfaceArea);
+    fprintf('Printing graph of average intensities');
+    graphIntensities(centerTracker);
 end
 
 function isSV = isSurfaceVoxel(i, j, k, labels)
@@ -64,4 +66,12 @@ function isSV = isSurfaceVoxel(i, j, k, labels)
             return;
         end
     end
+end
+
+function graphIntensities(centerTracker)
+    figure
+    plot(centerTracker(:,4),'x');
+    title('Average supervoxel intensities');
+    ylabel('Intensity');
+    xlabel('Supervoxel intensity');
 end
