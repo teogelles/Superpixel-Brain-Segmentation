@@ -1,9 +1,9 @@
 function compareSLIC(res, numSuperVoxels, shapeParam, numIters)
     
-    AD1Features = runSLIC(1, 500, 20, 15, 'AD', 1);
-    AD2Features = runSLIC(1, 500, 20, 15, 'AD', 2);
-    CN1Features = runSLIC(1, 500, 20, 15, 'CN', 1);
-    CN2Features = runSLIC(1, 500, 20, 15, 'CN', 2);
+    AD1Features = runSLIC(1, 'AD');
+    AD2Features = runSLIC(2, 'AD');
+    CN1Features = runSLIC(1, 'CN');
+    CN2Features = runSLIC(2, 'CN');
     
     fprintf('AD1 Features:\n');
     disp(AD1Features);
