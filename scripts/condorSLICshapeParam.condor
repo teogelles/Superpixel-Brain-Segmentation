@@ -9,4 +9,4 @@ Output = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).o
 requirements = (SlotID == 2) && (Memory > 5000)
 
 Arguments = $(Process)
-queue 7
+queue 8
