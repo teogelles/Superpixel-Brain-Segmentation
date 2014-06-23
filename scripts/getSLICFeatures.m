@@ -1,4 +1,7 @@
-function featureList = getSLICFeatures(labels, centers, centerTracker, filename)
+function featureList = getSLICFeatures(labels, centers, centerTracker, ...
+                                               tissueFilename, ...
+                                               indexList, filename, ...
+                                               res)
     
     
     fprintf('Getting SLIC Features\n');
@@ -26,14 +29,46 @@ function featureList = getSLICFeatures(labels, centers, centerTracker, filename)
     avgSurfaceArea = mean(surfaceArea);
     varSurfaceArea = var(surfaceArea);
     
+    
+    tissueTracker = getTissueTracker(labels, centerTracker, ...
+                                             tissueFilename, indexList, ...
+                                             res);
+    
+    
+    totGM = 0;
+    totWM = 0;
+    totCSF = 0;
+    for i=1:size(tissueTracker, 1)
+        
+        switch tissueTracker(i, 5)
+          case 2
+            totCSF = totCSF + 1;
+          case 3
+            totGM = totGM + 1;
+          case 4
+            totWM = totWM + 1;
+        end
+    end
+    
+    percentSVGM = (totGM) / (totGM + totWM + totCSF);
+    percentSVWM = (totWM) / (totGM + totWM + totCSF);
+    percentSVCSF = (totCSF) / (totGM + totWM + totCSF);
+    
+    
     fprintf('Average Intensity: %f\n', avgIntensity);
     fprintf('Average Volume: %f\n', avgVol);
     fprintf('Average Surface Area: %f\n', avgSurfaceArea);
     fprintf('Intensity Variance: %f\n', varIntensity);
     fprintf('Volume Variance: %f\n', varVolume);
     fprintf('Surface Area Variance: %f\n', varSurfaceArea);
-    fprintf('Printing graph of average intensities');
-    graphIntensities(centerTracker);
+    fprintf(['Percentage of Predominately GM Supervoxels: ' ...
+    '%f\n'], percentSVGM);
+    fprintf(['Percentage of Predominately WM Supervoxels: ' ...
+             '%f\n'], percentSVWM);
+    fprintf(['Percentage of Predominately CSF Supervoxels: ' ...
+             '%f\n'], percentSVCSF);
+    %fprintf('Printing graph of average intensities');
+    %graphIntensities(centerTracker);
     
     featureList = cell(6, 2);
     featureList{1, 1} = 'Average Intensity';

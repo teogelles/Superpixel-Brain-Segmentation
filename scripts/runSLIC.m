@@ -52,28 +52,35 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
                        '-',int2str(numIters),'.mat');
     
     
-    % checks if we've already run our primary SLIC codee and thus
+    % checks if we've already run our primary SLIC code and thus
     % the file already exists
-    if (exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
-        exist(xAddr, 'file') && exist(centerAddr, 'file') && ...
-        exist(trackerAddr, 'file'))
+    if (0)
+       
+        % exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
+        % exist(xAddr, 'file') && exist(centerAddr, 'file') && ...
+        % exist(trackerAddr, 'file'))
         
         
         fprintf('Relevant Files Already Exist, Loading...\n');
         
-        labels = load_nifti(slicAddr, imageNum, 1);
+        [labels indexList] = load_nifti(slicAddr, imageNum, 1);
         centers = load(centerAddr);
         centerTracker = load(trackerAddr);
         
         centers = centers.centers;
         centerTracker = centerTracker.centerTracker;
         
+        
+        tissueFilename = strcat('/acmi/chris13/results/ADNIresults/', ...
+                                dirType, int2str(imageNum), '_again');
+
         featureFilename = '/';
         slicFeatures = getSLICFeatures(labels, centers, centerTracker, ...
-                                               featureFilename);
+                                               tissueFilename, ...
+                                               indexList, featureFilename);
     else
         
-        X = load_nifti(dirType,imageNum,res);
+        [X indexList] = load_nifti(dirType,imageNum,res);
         
         [labels border centers centerTracker] = SLIC_3D(X,numSuperVoxels, ...
                                                         shapeParam, numIters);
@@ -85,7 +92,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         fprintf('Saving SLIC To %s\n', slicAddr);
         fprintf('Saving Border to %s\n', borderAddr);
         fprintf('Saving X to %s\n', xAddr);
-        fprintf('Saving Centesr to %s\n', centerAddr);
+        fprintf('Saving Centers to %s\n', centerAddr);
         fprintf('Saving Tracker to %s\n', trackerAddr);
         
         save_nii(slicNii, slicAddr);
@@ -94,14 +101,21 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         save(centerAddr, 'centers');
         save(trackerAddr, 'centerTracker');
         
+        tissueFilename = strcat('/acmi/chris13/results/ADNIresults/', ...
+                                dirType, int2str(imageNum), ...
+                                '_again');
+        
+        
         featureFilename = '/';
         slicFeatures = getSLICFeatures(labels, centers, centerTracker, ...
-                                               featureFilename);
+                                               tissueFilename, ...
+                                               indexList, featureFilename, ...
+                                               res);
     end
 end
 
 
-function X = load_nifti(dirType,imageNum, res)
+function [X, indexList] = load_nifti(dirType,imageNum, res)
 
 
     fprintf('Loading Nifti Image...\n');
@@ -149,5 +163,9 @@ function X = load_nifti(dirType,imageNum, res)
     
     
     X = X(1:res:end,1:res:end,1:res:end);
-    X = cropBlack(X);
+    
+    
+    
+    indexList = [1, size(X, 1); 1, size(X, 2); 1, size(X, 3)];
+    [X indexList] = cropBlack(X);
 end

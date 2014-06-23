@@ -7,7 +7,7 @@
 % matrix being an image represents a black buffer around the real
 % image
 
-function croppedImage = cropBlack(imageMatrix)
+function [croppedImage indexList] = cropBlack(imageMatrix)
 % cropBlack - crop the black buffer out of a matrix
 %
 % @param imageMatrix - The 3D matrix to crop
@@ -58,6 +58,14 @@ function croppedImage = cropBlack(imageMatrix)
             break;
         end
     end
+    
+    indexList = zeros(3, 2);
+    indexList(1, 1) = xStartIndex;
+    indexList(1, 2) = xEndIndex;
+    indexList(2, 1) = yStartIndex;
+    indexList(2, 2) = yEndIndex;
+    indexList(3, 1) = zStartIndex;
+    indexList(3, 2) = zEndIndex;
     
     croppedImage = imageMatrix(xStartIndex:xEndIndex, yStartIndex: ...
                                yEndIndex, zStartIndex:zEndIndex);
