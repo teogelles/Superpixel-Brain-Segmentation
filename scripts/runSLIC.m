@@ -1,8 +1,36 @@
-function slicFeatures = runSLIC(res, numSuperVoxels, shapeParam, ...
-                                numIters, dirType, imageNum)
+function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
+                                shapeParam, numIters)
     
+    % Handles if the user chooses to not input any of the arguments
+    if ~exist('numIters','var')
+        numIters = 15;
+    end
+    
+    if ~exist('shapParam','var')
+        shapeParam = 20;
+    end
+    
+    if ~exist('numSuperVoxels','var')
+        numSuperVoxels = 500;
+    end
+    
+    if ~exist('res','var')
+        res = 1;
+    end
+    
+    if ~exist('dirType','var')
+        dirType = 'IBSR';
+    end
+    
+    if ~exist('imageNum','var')
+        imageNum = 1;
+    end
+    
+    % base directory
     saveDir = '/scratch/tgelles1/summer2014/slic/';
     
+    % file addressing specific to each of the different type of
+    % file we may choose to run
     slicAddr=strcat(saveDir,'slic','-',dirType,'-', ...
                     int2str(numSuperVoxels),'-',int2str(shapeParam), ...
                     '-',int2str(res),'-',int2str(imageNum),'-', ...
@@ -24,7 +52,8 @@ function slicFeatures = runSLIC(res, numSuperVoxels, shapeParam, ...
                        '-',int2str(numIters),'.mat');
     
     
-    
+    % checks if we've already run our primary SLIC codee and thus
+    % the file already exists
     if (exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
         exist(xAddr, 'file') && exist(centerAddr, 'file') && ...
         exist(trackerAddr, 'file'))
