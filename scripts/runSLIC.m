@@ -72,14 +72,6 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         centers = centers.centers;
         centerTracker = centerTracker.centerTracker;
         indexList = indexList.indexList;
-        
-        tissueFilename = strcat('/acmi/chris13/results/ADNIresults/', ...
-                                dirType, int2str(imageNum), '_again');
-
-        featureFilename = '/';
-        slicFeatures = getSLICFeatures(labels, centers, centerTracker, ...
-                                               tissueFilename, ...
-                                               indexList, featureFilename);
     else
         
         [X indexList] = load_nifti(dirType,imageNum,res);
@@ -103,18 +95,17 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         save(centerAddr, 'centers');
         save(trackerAddr, 'centerTracker');
         save(indexAddr, 'indexList');
-        
-        tissueFilename = strcat('/acmi/chris13/results/ADNIresults/', ...
-                                dirType, int2str(imageNum), ...
-                                '_again');
-        
-        
-        featureFilename = '/';
-        slicFeatures = getSLICFeatures(labels, centers, centerTracker, ...
-                                               tissueFilename, ...
-                                               indexList, featureFilename, ...
-                                               res);
     end
+    
+    
+    tissueFilename = strcat('/acmi/chris13/results/ADNIresults/', ...
+                            dirType, int2str(imageNum), '_again');
+
+    featureFilename = '/';
+    slicFeatures = getSLICFeatures(labels, centers, centerTracker, ...
+                                           tissueFilename, ...
+                                           indexList, featureFilename, ...
+                                           res);
 end
 
 
@@ -166,9 +157,7 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
     
     
     X = X(1:res:end,1:res:end,1:res:end);
-    
-    
-    
+
     indexList = [1, size(X, 1); 1, size(X, 2); 1, size(X, 3)];
     [X indexList] = cropBlack(X);
 end
