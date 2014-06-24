@@ -1,4 +1,4 @@
-function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
+function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
                                                cropOffset, ...
                                                filename)
     
@@ -15,9 +15,9 @@ function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
     avgSurfaceArea = getAvgSurfaceArea(surfaceArea);
     varSurfaceArea = getVarSurfaceArea(surfaceArea);
 
-    tissueInfo = getTissueInfo(labels, tissues, centerInfo,
-                                             cropOffset);
-    
+    tissueInfo = getTissueInfo(labels, tissues, centerInfo,cropOffset);
+                                          
+    [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo);                                            
 
     [percentSVGM percentSVWM percentSVCSF] = ...
         getTissuePercentages(tissueInfo);
@@ -26,9 +26,11 @@ function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
     fprintf('Average Intensity: %f\n', avgIntensity);
     fprintf('Average Volume: %f\n', avgVol);
     fprintf('Average Surface Area: %f\n', avgSurfaceArea);
+    fprintf('Average Entropy: %f\n', avgEntropy);    
     fprintf('Intensity Variance: %f\n', varIntensity);
     fprintf('Volume Variance: %f\n', varVolume);
     fprintf('Surface Area Variance: %f\n', varSurfaceArea);
+    fprintf('Entropy Variance: %f\n', varEntropy);
     fprintf(['Percentage of Predominately GM Supervoxels: ' ...
     '%f\n'], percentSVGM);
     fprintf(['Percentage of Predominately WM Supervoxels: ' ...
@@ -164,4 +166,19 @@ function [percentSVGM percentSVWM percentSVCSF] = ...
     percentSVGM = (totGM) / (totGM + totWM + totCSF);
     percentSVWM = (totWM) / (totGM + totWM + totCSF);
     percentSVCSF = (totCSF) / (totGM + totWM + totCSF);    
+end
+
+function [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo)
+    
+    entropy = zeros(size(centerInfo,1),1);
+    
+    for i = 1:size(centerInfo,1)
+        numCenters = centerInfo(i,end);
+        entropySpread = (hist(double(im(labels==i)),255)./ numCenters) ...
+            .*log(hist(double(im(labels==i)),255)./numCenters);
+        entropy(i) = -1 * sum(entropySpread(~isnan(entropySpread))); 
+    end
+    
+    avgEntropy = mean(entropy);
+    varEntropy = var(entropy);
 end

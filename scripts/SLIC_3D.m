@@ -49,7 +49,7 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
     % worth applying. If you wish to do so, uncomment the line
     % below this and comment out the line below that
     %    step = .5 + (numVoxels/numSuperVoxels)^(1/3);
-    step = (numVoxels/numSuperVoxels)^(1/3);
+    step = round((numVoxels/numSuperVoxels)^(1/3));
     
     % Initialize superpixel centers and adjust to neighbor point of
     % lowest gradient
@@ -144,20 +144,19 @@ function seeds = getSeeds(imageMat, step)
 % our distances, this also encodes roughly our number of supervoxels
 %
 % @return seeds = the initial centers spread in a grid across the
-% image matrix. Note that this will be less than or equal to the
-% requested number of supervoxels based upon the image dimensions
+% image matrix. Note that this will be approximately equal to the
+% requested number of supervoxels, altered based upon the image dimensions
     
     numSeeds = 0;
     n = 1;
     % See remark in main code about the addition of .5
     %    xstrips = int32(.5 + size(imageMat,1)/step);
     %    ystrips = int32(.5 + size(imageMat,2)/step);
-    %    zstrips = int32(.5 + size(imageMat,3)/step);
-    
+    %    zstrips = int32(.5 + size(imageMat,3)/step);    
     % number of superVoxels in each direction
-    xstrips = int32(size(imageMat,1)/step);
-    ystrips = int32(size(imageMat,2)/step);
-    zstrips = int32(size(imageMat,3)/step);
+    xstrips = round(size(imageMat,1)/step);
+    ystrips = round(size(imageMat,2)/step);
+    zstrips = round(size(imageMat,3)/step);
     
     % check that we don't have too many, if so adjust
     xerr = size(imageMat,1) - step*xstrips;

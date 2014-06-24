@@ -61,6 +61,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         fprintf('Relevant Files Already Exist, Loading...\n');
         
         labels = load_nifti(slicAddr, imageNum, 1);
+        X = load_nifti(xAddr, imageNum, 1);
         centerInfo = load(centerinfoAddr);
         cropOffset = load(cropAddr);
         
@@ -96,7 +97,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     
     
     featureFilename = '/';
-    slicFeatures = getSLICFeatures(labels, tissues, centerInfo, ...
+    slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
                                            cropOffset, featureFilename);
 end
 
