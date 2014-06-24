@@ -1,7 +1,7 @@
 function tissueInfo = getTissueInfo(labels, tissues, centerInfo)
     
     
-    numCenters = size(centerTracker, 1);
+    numCenters = size(centerInfo, 1);
     
     tissueInfo = zeros(numCenters, 5);
     

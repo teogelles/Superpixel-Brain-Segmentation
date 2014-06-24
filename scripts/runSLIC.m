@@ -54,14 +54,17 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     
     % checks if we've already run our primary SLIC code and thus
     % the file already exists
-    if (exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
+    if (0)
+        
+        exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
         exist(xAddr, 'file') && exist(centerinfoAddr, 'file') && ...
-        exist(cropAddr, 'file'))
+        exist(cropAddr, 'file')
         
         fprintf('Relevant Files Already Exist, Loading...\n');
         
         labels = load_nifti(slicAddr, imageNum, 1);
         X = load_nifti(xAddr, imageNum, 1);
+        
         centerInfo = load(centerinfoAddr);
         cropOffset = load(cropAddr);
         
@@ -101,7 +104,8 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     
-    featureFilename = '/';
+    featureFilename = strcat('/scratch/tgelles1/summer2014/slic/', ...
+                             dirType,num2str(imageNum),'.txt');
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
                                            cropOffset, featureFilename);
 end

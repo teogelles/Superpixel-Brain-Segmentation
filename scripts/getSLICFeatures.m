@@ -1,9 +1,11 @@
 function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
-                                               cropOffset, ...
-                                               filename)
-    
+                                               cropOffset,filename)
     
     fprintf('Getting SLIC Features\n');
+    
+    outFile = fopen(filename, 'w');
+    
+    fprintf(outFile,'//Patient %d \n',1);
     
     avgIntensity = getAvgIntensity(centerInfo);
     avgVol = getAvgVol(centerInfo);
@@ -19,28 +21,28 @@ function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
                                                       centerInfo);
     
     if (~isnan(tissues))
-        tissueInfo = getTissueInfo(labels, tissues, centerInfo,cropOffset);
+        tissueInfo = getTissueInfo(labels, tissues, centerInfo);
 
         [percentSVGM percentSVWM percentSVCSF] = ...
             getTissuePercentages(tissueInfo);
     end
         
     
-    fprintf('Average Intensity: %f\n', avgIntensity);
-    fprintf('Average Volume: %f\n', avgVol);
-    fprintf('Average Surface Area: %f\n', avgSurfaceArea);
-    fprintf('Average Entropy: %f\n', avgEntropy);    
-    fprintf('Intensity Variance: %f\n', varIntensity);
-    fprintf('Volume Variance: %f\n', varVolume);
-    fprintf('Surface Area Variance: %f\n', varSurfaceArea);
-    fprintf('Entropy Variance: %f\n', varEntropy);
+    fprintf(outFile, 'Average Intensity: %f\n', avgIntensity);
+    fprintf(outFile, 'Average Volume: %f\n', avgVol);
+    fprintf(outFile, 'Average Surface Area: %f\n', avgSurfaceArea);
+    fprintf(outFile, 'Average Entropy: %f\n', avgEntropy);    
+    fprintf(outFile, 'Intensity Variance: %f\n', varIntensity);
+    fprintf(outFile, 'Volume Variance: %f\n', varVolume);
+    fprintf(outFile, 'Surface Area Variance: %f\n', varSurfaceArea);
+    fprintf(outFile, 'Entropy Variance: %f\n', varEntropy);
     
     if (~isnan(tissues))
-        fprintf(['Percentage of Predominately GM Supervoxels: ' ...
+        fprintf(outFile, ['Percentage of Predominately GM Supervoxels: ' ...
                  '%f\n'], percentSVGM);
-        fprintf(['Percentage of Predominately WM Supervoxels: ' ...
+        fprintf(outFile, ['Percentage of Predominately WM Supervoxels: ' ...
                  '%f\n'], percentSVWM);
-        fprintf(['Percentage of Predominately CSF Supervoxels: ' ...
+        fprintf(outFile, ['Percentage of Predominately CSF Supervoxels: ' ...
                  '%f\n'], percentSVCSF);
     end
     %fprintf('Printing graph of average intensities');
@@ -202,7 +204,8 @@ function [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo)
     entropy = zeros(size(centerInfo,1),1);
     
     for i = 1:size(centerInfo,1)
-        numCenters = centerInfo(i,end);
+        %LOOK HERE FOR SEMICOLONS A LACKING!!!
+        numCenters = centerInfo(i,5);
         entropySpread = (hist(double(im(labels==i)),255)./ numCenters) ...
             .*log(hist(double(im(labels==i)),255)./numCenters);
         entropy(i) = -1 * sum(entropySpread(~isnan(entropySpread))); 
