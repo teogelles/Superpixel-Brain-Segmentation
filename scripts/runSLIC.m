@@ -91,9 +91,14 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     
-    tissueFilename = strcat('/acmi/chris13/results/ADNIresults/', ...
-                            dirType, int2str(imageNum), '_again');
-    tissues = load_tissues(tissueFilename, cropOffset, res);
+    if (strcmp(dirType, 'IBSR'))
+        tissues = NaN;
+
+    else
+        tissueFilename = strcat('/acmi/chris13/results/ADNIresults/', ...
+                                dirType, int2str(imageNum), '_again');
+        tissues = load_tissues(tissueFilename, cropOffset, res);
+    end
     
     
     featureFilename = '/';
@@ -153,7 +158,7 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
     [X indexList] = cropBlack(X);
 end
 
-function tissues = load_tissues(tissueFIlename, cropOffset, res)
+function tissues = load_tissues(tissueFilename, cropOffset, res)
     
     tissues = load_nii(tissueFilename);
     tissues = tissues.img(1:res:end,1:res:end,1:res:end);

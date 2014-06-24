@@ -13,14 +13,17 @@ function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
         
     surfaceArea = getSurfaceArea(labels, centerInfo);
     avgSurfaceArea = getAvgSurfaceArea(surfaceArea);
-    varSurfaceArea = getVarSurfaceArea(surfaceArea);
+    varSurfaceArea = getVarSurfaceArea(surfaceArea);                                          
+    [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo);
+    [avgSpreadX avgSpreadY avgSpreadZ] = getAvgSpread(labels, ...
+                                                      centerInfo);
+    
+    if (~isnan(tissues))
+        tissueInfo = getTissueInfo(labels, tissues, centerInfo,cropOffset);
 
-    tissueInfo = getTissueInfo(labels, tissues, centerInfo,cropOffset);
-                                          
-    [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo);                                            
-
-    [percentSVGM percentSVWM percentSVCSF] = ...
-        getTissuePercentages(tissueInfo);
+        [percentSVGM percentSVWM percentSVCSF] = ...
+            getTissuePercentages(tissueInfo);
+    end
         
     
     fprintf('Average Intensity: %f\n', avgIntensity);
@@ -31,19 +34,28 @@ function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
     fprintf('Volume Variance: %f\n', varVolume);
     fprintf('Surface Area Variance: %f\n', varSurfaceArea);
     fprintf('Entropy Variance: %f\n', varEntropy);
-    fprintf(['Percentage of Predominately GM Supervoxels: ' ...
-    '%f\n'], percentSVGM);
-    fprintf(['Percentage of Predominately WM Supervoxels: ' ...
-             '%f\n'], percentSVWM);
-    fprintf(['Percentage of Predominately CSF Supervoxels: ' ...
-             '%f\n'], percentSVCSF);
+    
+    if (~isnan(tissues))
+        fprintf(['Percentage of Predominately GM Supervoxels: ' ...
+                 '%f\n'], percentSVGM);
+        fprintf(['Percentage of Predominately WM Supervoxels: ' ...
+                 '%f\n'], percentSVWM);
+        fprintf(['Percentage of Predominately CSF Supervoxels: ' ...
+                 '%f\n'], percentSVCSF);
+    end
     %fprintf('Printing graph of average intensities');
     %graphIntensities(centerInfo);
     
-    featureList = cell(6, 2);
+    if (~isnan(tissues))
+        featureList = cell(12, 2);
+        startTissueIndex = 10;
+    else
+        featureList = cell(9, 2);
+    end
+    
     featureList{1, 1} = 'Average Intensity';
     featureList{1, 2} = avgIntensity;
-    featureList{2, 1} = 'Avererage Volume';
+    featureList{2, 1} = 'Average Volume';
     featureList{2, 2} = avgVol;
     featureList{3, 1} = 'Average Surface Area';
     featureList{3, 2} = avgSurfaceArea;
@@ -53,7 +65,24 @@ function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
     featureList{5, 2} = varVolume;
     featureList{6, 1} = 'Surface Area Variance';
     featureList{6, 2} = varSurfaceArea;
-
+    featureList{7, 1} = 'Average Spread over x-axis';
+    featureList{7, 2} = avgSpreadX;
+    featureList{8, 1} = 'Average Spread over y-axis';
+    featureList{8, 2} = avgSpreadY;
+    featureList{9, 1} = 'Average Spread over z-axis';
+    featureList{9, 2} = avgSpreadZ;
+    
+    if (~isnan(tissues))
+        featureList{startTissueIndex, 1} = ['Percentage of Predominately GM ' ...
+                            'Supervoxels'];
+        featureList{startTissueIndex, 2} = percentSVGM;
+        featureList{startTissueIndex+1, 1} = ['Percentage of Predominately WM ' ...
+                            'Supervoxels'];
+        featureList{startTissueIndex+1, 2} = percentSVWM;
+        featureList{startTissueIndex+2, 1} = ['Percentage of Predominately CSF ' ...
+                            'Supervoxels'];
+        featureList{startTissueIndex+2, 2} = percentSVCSF;
+    end
 end
 
 function isSV = isSurfaceVoxel(i, j, k, labels)
@@ -181,4 +210,26 @@ function [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo)
     
     avgEntropy = mean(entropy);
     varEntropy = var(entropy);
+end
+    
+function [avgSpreadX avgSpreadY avgSpreadZ] = getAvgSpread(labels, centerInfo)
+    
+    spreads = zeros(size(centerInfo, 1), 3);
+    
+    for i=1:size(spreads, 1)
+        linearLabels = find(labels == i);
+        if (size(linearLabels, 1) == 0)
+            continue;
+        end
+        
+        [rows cols pages] = ind2sub(size(labels), linearLabels);
+        
+        spreads(i, 1) = max(rows) - min(rows);
+        spreads(i, 2) = max(cols) - min(cols);
+        spreads(i, 3) = max(pages) - min(pages);
+    end
+
+    avgSpreadX = mean(spreads(:, 1));
+    avgSpreadY = mean(spreads(:, 2));
+    avgSpreadZ = mean(spreads(:, 3));
 end
