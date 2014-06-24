@@ -68,7 +68,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         cropOffset = cropOffset.cropOffset;
     else
         
-        [X indexList] = load_nifti(dirType,imageNum,res);
+        [X cropOffset] = load_nifti(dirType,imageNum,res);
         
         [labels border centerInfo] = SLIC_3D(X,numSuperVoxels, ...
                                              shapeParam, numIters);
@@ -80,7 +80,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         fprintf('Saving SLIC To %s\n', slicAddr);
         fprintf('Saving Border to %s\n', borderAddr);
         fprintf('Saving X to %s\n', xAddr);
-        fprintf('Saving CenterInfo to %s\n', centerAddr);
+        fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
         
         save_nii(slicNii, slicAddr);
         save_nii(borderNii, borderAddr);
