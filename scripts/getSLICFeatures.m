@@ -1,6 +1,5 @@
 function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
-                                               cropOffset, ...
-                                               filename)
+                                               cropOffset, filename)
     
     
     fprintf('Getting SLIC Features\n');
@@ -15,12 +14,13 @@ function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
     avgSurfaceArea = getAvgSurfaceArea(surfaceArea);
     varSurfaceArea = getVarSurfaceArea(surfaceArea);
 
-    tissueInfo = getTissueInfo(labels, tissues, centerInfo,
-                                             cropOffset);
-    
 
-    [percentSVGM percentSVWM percentSVCSF] = ...
-        getTissuePercentages(tissueInfo);
+    if (~isnan(tissues))
+        tissueInfo = getTissueInfo(labels, tissues, centerInfo,cropOffset);
+
+        [percentSVGM percentSVWM percentSVCSF] = ...
+            getTissuePercentages(tissueInfo);
+    end
         
     
     fprintf('Average Intensity: %f\n', avgIntensity);
@@ -29,19 +29,27 @@ function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
     fprintf('Intensity Variance: %f\n', varIntensity);
     fprintf('Volume Variance: %f\n', varVolume);
     fprintf('Surface Area Variance: %f\n', varSurfaceArea);
-    fprintf(['Percentage of Predominately GM Supervoxels: ' ...
-    '%f\n'], percentSVGM);
-    fprintf(['Percentage of Predominately WM Supervoxels: ' ...
-             '%f\n'], percentSVWM);
-    fprintf(['Percentage of Predominately CSF Supervoxels: ' ...
-             '%f\n'], percentSVCSF);
+    
+    if (~isnan(tissues))
+        fprintf(['Percentage of Predominately GM Supervoxels: ' ...
+                 '%f\n'], percentSVGM);
+        fprintf(['Percentage of Predominately WM Supervoxels: ' ...
+                 '%f\n'], percentSVWM);
+        fprintf(['Percentage of Predominately CSF Supervoxels: ' ...
+                 '%f\n'], percentSVCSF);
+    end
     %fprintf('Printing graph of average intensities');
     %graphIntensities(centerInfo);
     
-    featureList = cell(6, 2);
+    if (~isnan(tissues))
+        featureList = cell(9, 2);
+    else
+        featureList = cell(6, 2);
+    end
+    
     featureList{1, 1} = 'Average Intensity';
     featureList{1, 2} = avgIntensity;
-    featureList{2, 1} = 'Avererage Volume';
+    featureList{2, 1} = 'Average Volume';
     featureList{2, 2} = avgVol;
     featureList{3, 1} = 'Average Surface Area';
     featureList{3, 2} = avgSurfaceArea;
@@ -51,7 +59,18 @@ function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
     featureList{5, 2} = varVolume;
     featureList{6, 1} = 'Surface Area Variance';
     featureList{6, 2} = varSurfaceArea;
-
+    
+    if (~isnan(tissues))
+        featureList{7, 1} = ['Percentage of Predominately GM ' ...
+                            'Supervoxels'];
+        featureList{7, 2} = percentSVGM;
+        featureList{8, 1} = ['Percentage of Predominately WM ' ...
+                            'Supervoxels'];
+        featureList{8, 2} = percentSVWM;
+        featureList{9, 1} = ['Percentage of Predominately CSF ' ...
+                            'Supervoxels'];
+        featureList{9, 2} = percentSVCSF;
+    end
 end
 
 function isSV = isSurfaceVoxel(i, j, k, labels)
