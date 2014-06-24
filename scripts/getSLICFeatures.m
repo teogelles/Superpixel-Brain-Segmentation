@@ -1,28 +1,26 @@
-function featureList = getSLICFeatures(labels, centers, centerTracker, ...
-                                               tissueFilename, ...
-                                               indexList, filename, ...
-                                               res)
+function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
+                                               cropOffset, ...
+                                               filename)
     
     
     fprintf('Getting SLIC Features\n');
     
-    avgIntensity = getAvgIntensity(centerTracker);
-    avgVol = getAvgVol(centerTracker);
+    avgIntensity = getAvgIntensity(centerInfo);
+    avgVol = getAvgVol(centerInfo);
     
-    varIntensity = getVarIntensity(centerTracker);
-    varVolume = getVarVolume(centerTracker);
+    varIntensity = getVarIntensity(centerInfo);
+    varVolume = getVarVolume(centerInfo);
         
-    surfaceArea = getSurfaceArea(centers, labels);
+    surfaceArea = getSurfaceArea(labels, centerInfo);
     avgSurfaceArea = getAvgSurfaceArea(surfaceArea);
     varSurfaceArea = getVarSurfaceArea(surfaceArea);
 
-    tissueTracker = getTissueTracker(labels, centerTracker, ...
-                                             tissueFilename, indexList, ...
-                                             res);
+    tissueInfo = getTissueInfo(labels, tissues, centerInfo,
+                                             cropOffset);
     
 
     [percentSVGM percentSVWM percentSVCSF] = ...
-        getTissuePercentages(tissueTracker);
+        getTissuePercentages(tissueInfo);
         
     
     fprintf('Average Intensity: %f\n', avgIntensity);
@@ -38,7 +36,7 @@ function featureList = getSLICFeatures(labels, centers, centerTracker, ...
     fprintf(['Percentage of Predominately CSF Supervoxels: ' ...
              '%f\n'], percentSVCSF);
     %fprintf('Printing graph of average intensities');
-    %graphIntensities(centerTracker);
+    %graphIntensities(centerInfo);
     
     featureList = cell(6, 2);
     featureList{1, 1} = 'Average Intensity';
@@ -88,39 +86,39 @@ function isSV = isSurfaceVoxel(i, j, k, labels)
     end
 end
 
-function graphIntensities(centerTracker)
+function graphIntensities(centerInfo)
     figure
-    plot(centerTracker(:,4),'x');
+    plot(centerInfo(:,4),'x');
     title('Average supervoxel intensities');
     ylabel('Intensity');
     xlabel('Supervoxel intensity');
 end
 
 
-function avgIntensity = getAvgIntensity(centerTracker)
+function avgIntensity = getAvgIntensity(centerInfo)
 
-    avgIntensity = mean(centerTracker(:, 4));    
+    avgIntensity = mean(centerInfo(:, 4));    
 end
 
-function avgVol = getAvgVol(centerTracker)
+function avgVol = getAvgVol(centerInfo)
 
-    avgVol = mean(centerTracker(:, 5));
+    avgVol = mean(centerInfo(:, 5));
 end
     
-function varIntensity = getVarIntensity(centerTracker)
+function varIntensity = getVarIntensity(centerInfo)
 
-    varIntensity = var(centerTracker(:, 4));
+    varIntensity = var(centerInfo(:, 4));
 end
  
-function varVolume = getVarVolume(centerTracker)
+function varVolume = getVarVolume(centerInfo)
 
-    varVolume = var(centerTracker(:, 5));
+    varVolume = var(centerInfo(:, 5));
 end
 
 
-function surfaceArea = getSurfaceArea(centers, labels)
+function surfaceArea = getSurfaceArea(labels, centerInfo)
 
-    surfaceArea = zeros(size(centers, 1), 1);
+    surfaceArea = zeros(size(centerInfo, 1), 1);
     for i= 1:size(labels, 1)
         for j = 1:size(labels, 2)
             for k = 1:size(labels, 3)
@@ -146,14 +144,14 @@ function varSurfaceArea = getVarSurfaceArea(surfaceArea)
 end
 
 function [percentSVGM percentSVWM percentSVCSF] = ...
-        getTissuePercentages(tissueTracker)
+        getTissuePercentages(tissueInfo)
     
     totGM = 0;
     totWM = 0;
     totCSF = 0;
-    for i=1:size(tissueTracker, 1)
+    for i=1:size(tissueInfo, 1)
         
-        switch tissueTracker(i, 5)
+        switch tissueInfo(i, 5)
           case 2
             totCSF = totCSF + 1;
           case 3
