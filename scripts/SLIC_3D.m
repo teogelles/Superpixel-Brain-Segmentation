@@ -14,8 +14,8 @@
 % Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
-function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperVoxels, ...
-                                     shapeParam, numIters)
+function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
+                                                 shapeParam, numIters)
 % SLIC_3D - Get a supervoxelated image
 %
 % @param imageMat - The image to be supervoxelated as a matrix
@@ -25,7 +25,12 @@ function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperV
 % both Euclidean distance and a color metric)
 % @param numIters - The number of iterations to run the SLIC loop
 %
-% @return - The labels for the supervoxels of imageMat as a matrix
+% @return lables - The labels for the supervoxels of imageMat as a matrix
+% @return borders - The borders for the supervoxelated image overlayed on
+% the original image
+% @return centerInfo - Information on every superVoxel including
+% its average x,y, and z coordinates as well as the number of
+% voxels that are members 
     
     if ~(shapeParam) || (shapeParam < 0)
         shapeParam = 20;
@@ -37,8 +42,12 @@ function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperV
     end
     
     numVoxels = size(imageMat,1)*size(imageMat,2)*size(imageMat,3);
-    % in the original cpp code, they add an odd .5 to S, but we're
-    % not sure why, so we're going to leave that off for now
+    % in the original cpp code, they add an .5 to S. This is a
+    % small trick that they do to get around rounding in int
+    % conversion, however adding that to this code does slightly
+    % change where the superVoxels are initialized and might be
+    % worth applying. If you wish to do so, uncomment the line
+    % below this and comment out the line below that
     %    step = .5 + (numVoxels/numSuperVoxels)^(1/3);
     step = (numVoxels/numSuperVoxels)^(1/3);
     
@@ -64,6 +73,8 @@ function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperV
     for iterations = 1:numIters
         
         fprintf('.');
+        % centerTracker will keep track of the sum values in each
+        % of the supervoxels so that at the end we can adjust the centers
         centerTracker = zeros(size(centers,1),5);
 
         for c = 1:size(centers,1)
@@ -94,8 +105,14 @@ function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperV
             end
         end
         
+        % preallocation of the new centers
         newCenters = zeros(size(centers));
         
+        % within this parfor loop (which can be changed back to
+        % regular for if you don't have the appropriate MATLAB
+        % toolbox) we assign the new centers to the indexes of the
+        % old centers. If you wish to calculate the L2 norm of the
+        % movement of the centers, E, you could do so here
         parfor i = 1:size(centerTracker,1)
             if (centerTracker(i,5) == 0)
                 newCenters(i,:) = centers(i,:);
@@ -111,21 +128,38 @@ function [labels, borders, centers, centerTracker] = SLIC_3D(imageMat, numSuperV
     fprintf('\n');
     
     borders = getBorders(imageMat, labels, 0);
+    
+    % build centerInfo
+    centerInfo = zeros(size(centers,1),size(centers,2) + 1);
+    centerInfo(:,1:size(centers,2)) = centers;
+    centerInfo(:,size(centers,2) + 1) = centerTracker(:,end);
+    
 end
 
 function seeds = getSeeds(imageMat, step)
 % getSeeds takes the original image and the step size and returns a
 % matriz of all the seed locations for starting the superpixel algo
+% @param imageMat = matrix of original 3D image
+% @param step = step around each supervoxel that we want to compute
+% our distances, this also encodes roughly our number of supervoxels
+%
+% @return seeds = the initial centers spread in a grid across the
+% image matrix. Note that this will be less than or equal to the
+% requested number of supervoxels based upon the image dimensions
     
     numSeeds = 0;
     n = 1;
+    % See remark in main code about the addition of .5
     %    xstrips = int32(.5 + size(imageMat,1)/step);
     %    ystrips = int32(.5 + size(imageMat,2)/step);
     %    zstrips = int32(.5 + size(imageMat,3)/step);
+    
+    % number of superVoxels in each direction
     xstrips = int32(size(imageMat,1)/step);
     ystrips = int32(size(imageMat,2)/step);
     zstrips = int32(size(imageMat,3)/step);
     
+    % check that we don't have too many, if so adjust
     xerr = size(imageMat,1) - step*xstrips;
     if (xerr < 0)
         xstrips = xstrips - 1;
@@ -144,10 +178,12 @@ function seeds = getSeeds(imageMat, step)
         zerr = size(imageMat,3) - step*zstrips;
     end
     
+    % find the number of voxels left off in each strip
     xerrperstrip = xerr/xstrips;
     yerrperstrip = yerr/ystrips;
     zerrperstrip = zerr/zstrips;
     
+    % the initial offset in each direction
     xoff = int32(step/2);
     yoff = int32(step/2);
     zoff = int32(step/2);
@@ -155,6 +191,7 @@ function seeds = getSeeds(imageMat, step)
     numSeeds = xstrips*ystrips*zstrips;
     seeds = zeros(numSeeds,4);
     
+    % place the seeds
     for z = 0:(zstrips-1)
         ze = z*zerrperstrip;
         d = z*step+zoff+ze;
@@ -172,10 +209,19 @@ function seeds = getSeeds(imageMat, step)
 end
 
 function seeds = adjustSeeds(im, seeds)
+% This function adjusts the seeds so that they are in the lowest
+% gradient position of their immediate neighbors
+% @param im - image matrix, shortened for ease of typing
+% @param seeds - initial seeds
+%
+% @return seeds - seeds adjusted for gradient
+    
     grads = gradientApprox(im,seeds);
     for i = 1:size(seeds,1)
         ne = getNeighbors(im,seeds(i,1),seeds(i,2), seeds(i,3));
         for ne_i = 1:size(ne,1)
+            % if the gradient of the neighbor is less than that of
+            % the current center, move the center there
             if(abs(grads(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3))) < ...
                abs(grads(seeds(i,1),seeds(i,2),seeds(i,3))))
                 seeds(i,1:3) = ne(ne_i,:);
@@ -188,9 +234,18 @@ function seeds = adjustSeeds(im, seeds)
 end
 
 function ne = getNeighbors(mat, i, j, k)
+% Gets the immediate neighbors of the i,j,k position in the matrix
+% @param mat - image matrix
+% @params i,j,k - x,y,z coordinates of the point of inters
+%
+% @return ne - number_of_neighbors x 3 matrix of neighbor
+% coordinates
+    
     num_ne = 1;
     % We calculate the number of neighbors so that we can
     % preallocate the space for the neighbors array
+
+    % Edge case if we are on either edge, then else is anywhere else
     if i == 1
         indi = [0 1];
         num_ne = num_ne * 2;
@@ -243,24 +298,35 @@ function grads = gradientApprox(im,seeds)
 %The following function approximates the gradient of the neighbors
 %of the seeds values so that we can choose the lowest gradient
 %value
+% @param im - image matrix
+% @param seeds - initial seeded center coordinates
+%
+% @return grads = gradient approximation at each point that is a
+% neighbor of a seed; the rest of the values we do not need to calculate
+    
     grads = zeros(size(im));
     
     for i = 1:size(seeds,1)
         
+        % if we already found the value, no need to do it again
         if(grads(seeds(i,1),seeds(i,2),seeds(i,3)) ~= 0)
             continue
         end
         
+        % ne = neighbors
         ne = getNeighbors(im,seeds(i,1),seeds(i,2),seeds(i,3));
         diffsum = 0;
         
         for ne_i = 1:size(ne,1)
+            % sum difference between neighboring value and center value
             diffsum = diffsum + abs(im(seeds(i,1),seeds(i,2),seeds(i,3))...
                                     - im(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3)));
+
             if(grads(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3)) ~= 0)
                 continue
             end
             
+            % nene = neighbors of neighbor
             nene = getNeighbors(im, ne(ne_i,1),ne(ne_i,2),ne(ne_i, ...
                                                              3));
             ne_diffsum = 0;
@@ -272,6 +338,8 @@ function grads = gradientApprox(im,seeds)
                            nene(nene_i,3)));
             end
             
+            % we average the difference by number of neighbors so
+            % we don't get low approximations for edge cases
             grads(ne(ne_i,1),ne(ne_i,2),ne(ne_i,3)) = ne_diffsum/ ...
                 size(nene,1);
             
@@ -365,6 +433,12 @@ function dist = calculateDistance(mat,cent,neb,m,s)
 % calculateDistance - Returns the distance between a pixel and its
 % center with the special SLIC metric that incorporates both
 % Euclidean distance and color
+% @param mat - image matrix
+% @param cent - center point, 1x4 matrix of x,y,z and intensity
+% @param neb - neighbor to center, 1x3 matrix of x,y,z (intensity
+% found in mat)
+% @param m - the shape parameter we send in, generally in [1,40]
+% @param s - the step size
     
 
     dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2 + (cent(3)-neb(3))^2; ...
@@ -383,9 +457,19 @@ end
 function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, ...
                                                               i, j, ...
                                                               k)
+    % Function gets the neighborhood ends for a regions around the
+    % center of size radius
+    % @param imageMatSize - size of the image matrix
+    % @param radius - square radius of neighborhood around center
+    % @params i,j,k - x,y,z coordintate of center
+    %
+    % @return neighborhoodEnds - matrix of starts and ends of each
+    % direction of neighborhood
+    
     neighborhoodEnds = [floor(i-radius),ceil(i+radius),floor(j-radius), ...
                         ceil(j + radius), floor(k - radius), ceil(k + radius)];
     
+    % edge cases
     if neighborhoodEnds(1) < 1
         neighborhoodEnds(1) = 1;
     end
@@ -408,7 +492,11 @@ function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, ...
 end
 
 function borders = getBorders(im,labels,fillSetter)
-% If fill = 0, set the borders on the image to 0, else set them to
+% Gets a matrix of the supervoxel borders overlayed on the original
+% image
+% @param im - image matrix
+% @param labels - final supervoxel labels for each voxel
+% @param fillsetter - If fill = 0, set the borders on the image to 0, else set them to
 % inf
     if ~fillSetter
         fill = 0;

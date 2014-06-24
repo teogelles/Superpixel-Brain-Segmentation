@@ -1,4 +1,4 @@
-function compareSLIC(res, numSuperVoxels, shapeParam, numIters)
+function compareSLIC()
     
     AD1Features = runSLIC(1, 'AD');
     AD2Features = runSLIC(2, 'AD');
