@@ -454,9 +454,7 @@ end
 
 
 
-function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, ...
-                                                              i, j, ...
-                                                              k)
+function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, i, j, k)
     % Function gets the neighborhood ends for a regions around the
     % center of size radius
     % @param imageMatSize - size of the image matrix

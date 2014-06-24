@@ -15,6 +15,9 @@ function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
     varSurfaceArea = getVarSurfaceArea(surfaceArea);
 
 
+    [avgSpreadX avgSpreadY avgSpreadZ] = getAvgSpread(labels, ...
+                                                      centerInfo);
+    
     if (~isnan(tissues))
         tissueInfo = getTissueInfo(labels, tissues, centerInfo,cropOffset);
 
@@ -42,9 +45,10 @@ function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
     %graphIntensities(centerInfo);
     
     if (~isnan(tissues))
-        featureList = cell(9, 2);
+        featureList = cell(12, 2);
+        startTissueIndex = 10;
     else
-        featureList = cell(6, 2);
+        featureList = cell(9, 2);
     end
     
     featureList{1, 1} = 'Average Intensity';
@@ -59,17 +63,23 @@ function featureList = getSLICFeatures(labels, tissues, centerInfo, ...
     featureList{5, 2} = varVolume;
     featureList{6, 1} = 'Surface Area Variance';
     featureList{6, 2} = varSurfaceArea;
+    featureList{7, 1} = 'Average Spread over x-axis';
+    featureList{7, 2} = avgSpreadX;
+    featureList{8, 1} = 'Average Spread over y-axis';
+    featureList{8, 2} = avgSpreadY;
+    featureList{9, 1} = 'Average Spread over z-axis';
+    featureList{9, 2} = avgSpreadZ;
     
     if (~isnan(tissues))
-        featureList{7, 1} = ['Percentage of Predominately GM ' ...
+        featureList{startTissueIndex, 1} = ['Percentage of Predominately GM ' ...
                             'Supervoxels'];
-        featureList{7, 2} = percentSVGM;
-        featureList{8, 1} = ['Percentage of Predominately WM ' ...
+        featureList{startTissueIndex, 2} = percentSVGM;
+        featureList{startTissueIndex+1, 1} = ['Percentage of Predominately WM ' ...
                             'Supervoxels'];
-        featureList{8, 2} = percentSVWM;
-        featureList{9, 1} = ['Percentage of Predominately CSF ' ...
+        featureList{startTissueIndex+1, 2} = percentSVWM;
+        featureList{startTissueIndex+2, 1} = ['Percentage of Predominately CSF ' ...
                             'Supervoxels'];
-        featureList{9, 2} = percentSVCSF;
+        featureList{startTissueIndex+2, 2} = percentSVCSF;
     end
 end
 
@@ -183,4 +193,26 @@ function [percentSVGM percentSVWM percentSVCSF] = ...
     percentSVGM = (totGM) / (totGM + totWM + totCSF);
     percentSVWM = (totWM) / (totGM + totWM + totCSF);
     percentSVCSF = (totCSF) / (totGM + totWM + totCSF);    
+end
+
+function [avgSpreadX avgSpreadY avgSpreadZ] = getAvgSpread(labels, centerInfo)
+    
+    spreads = zeros(size(centerInfo, 1), 3);
+    
+    for i=1:size(spreads, 1)
+        linearLabels = find(labels == i);
+        if (size(linearLabels, 1) == 0)
+            continue;
+        end
+        
+        [rows cols pages] = ind2sub(size(labels), linearLabels);
+        
+        spreads(i, 1) = max(rows) - min(rows);
+        spreads(i, 2) = max(cols) - min(cols);
+        spreads(i, 3) = max(pages) - min(pages);
+    end
+
+    avgSpreadX = mean(spreads(:, 1));
+    avgSpreadY = mean(spreads(:, 2));
+    avgSpreadZ = mean(spreads(:, 3));
 end
