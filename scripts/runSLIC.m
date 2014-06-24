@@ -92,7 +92,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     
     tissueFilename = strcat('/acmi/chris13/results/ADNIresults/', ...
                             dirType, int2str(imageNum), '_again');
-    tissues = load_tissues(tissueFIlename, cropOffset, res);
+    tissues = load_tissues(tissueFilename, cropOffset, res);
     
     
     featureFilename = '/';
