@@ -54,44 +54,44 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     
     % checks if we've already run our primary SLIC code and thus
     % the file already exists
-    if (0)
-        
-        exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
-        exist(xAddr, 'file') && exist(centerinfoAddr, 'file') && ...
-        exist(cropAddr, 'file')
-        
-        fprintf('Relevant Files Already Exist, Loading...\n');
-        
-        labels = load_nifti(slicAddr, imageNum, 1);
-        X = load_nifti(xAddr, imageNum, 1);
-        
-        centerInfo = load(centerinfoAddr);
-        cropOffset = load(cropAddr);
-        
-        centerInfo = centerInfo.centerInfo;
-        cropOffset = cropOffset.cropOffset;
-    else
-        
-        [X cropOffset] = load_nifti(dirType,imageNum,res);
-        
-        [labels border centerInfo] = SLIC_3D(X,numSuperVoxels, ...
-                                             shapeParam, numIters);
-        
-        slicNii = make_nii(labels);
-        borderNii = make_nii(border);
-        xNii = make_nii(X);
-        
-        fprintf('Saving SLIC To %s\n', slicAddr);
-        fprintf('Saving Border to %s\n', borderAddr);
-        fprintf('Saving X to %s\n', xAddr);
-        fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
-        
-        save_nii(slicNii, slicAddr);
-        save_nii(borderNii, borderAddr);
-        save_nii(xNii, xAddr);
-        save(centerinfoAddr, 'centerInfo');
-        save(cropAddr, 'cropOffset');
-    end
+    %if (0)
+    
+    % exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
+    %     exist(xAddr, 'file') && exist(centerinfoAddr, 'file') && ...
+    %     exist(cropAddr, 'file'))
+    
+    % fprintf('Relevant Files Already Exist, Loading...\n');
+    
+    % labels = load_nifti(slicAddr, imageNum, 1);
+    % X = load_nifti(xAddr, imageNum, 1);
+    
+    % centerInfo = load(centerinfoAddr);
+    % cropOffset = load(cropAddr);
+    
+    % centerInfo = centerInfo.centerInfo;
+    % cropOffset = cropOffset.cropOffset;
+    %else
+    
+    [X cropOffset] = load_nifti(dirType,imageNum,res);
+    
+    [labels border centerInfo] = SLIC_3D(X,numSuperVoxels, ...
+                                         shapeParam, numIters);
+    
+    slicNii = make_nii(labels);
+    borderNii = make_nii(border);
+    xNii = make_nii(X);
+    
+    fprintf('Saving SLIC to %s\n', slicAddr);
+    save_nii(slicNii, slicAddr);
+    fprintf('Saving Border to %s\n', borderAddr);
+    save_nii(borderNii, borderAddr);
+    fprintf('Saving X to %s\n', xAddr);
+    save_nii(xNii, xAddr);
+    fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
+    save(centerinfoAddr, 'centerInfo');
+    fprintf('Saving CropOffset to %s\n', cropAddr);
+    save(cropAddr, 'cropOffset');
+    %end
     
     
     if (strcmp(dirType, 'IBSR'))
@@ -104,10 +104,12 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     
-    featureFilename = strcat('/scratch/tgelles1/summer2014/slic/', ...
+    featureFilename = strcat('/scratch/tgelles1/summer2014/slic/',...
                              dirType,num2str(imageNum),'.txt');
+    
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
-                                           cropOffset, featureFilename);
+                                      cropOffset,featureFilename, ...
+                                      imageNum);
 end
 
 
@@ -128,15 +130,15 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
         end
         
     elseif (strcmp(dirType, 'AD'))
-            
-            imageName = strcat('/acmi/fmri/AD_T1/patient', ...
-                               int2str(imageNum), '.nii');
+        
+        imageName = strcat('/acmi/fmri/AD_T1/patient', ...
+                           int2str(imageNum), '.nii');
     elseif (strcmp(dirType, 'CN'))
-            imageName = strcat('/acmi/fmri/CN_T1/patient', ...
-                               int2str(imageNum), '.nii');
+        imageName = strcat('/acmi/fmri/CN_T1/patient', ...
+                           int2str(imageNum), '.nii');
     elseif (strcmp(dirType, 'MCN'))
-            imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
-                               int2str(imageNum), '.nii');
+        imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
+                           int2str(imageNum), '.nii');
     else
         imageName = dirType;
     end
@@ -147,7 +149,7 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
                                imageName);
         throw(exception);
     end
-        
+    
 
     fprintf('ImageName: %s\n', imageName);
     
