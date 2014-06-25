@@ -24,7 +24,7 @@ function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
         [percentSVGM percentSVWM percentSVCSF] = ...
             getTissuePercentages(tissueInfo);
     end
-        
+
     
     fprintf('Average Intensity: %f\n', avgIntensity);
     fprintf('Average Volume: %f\n', avgVol);
