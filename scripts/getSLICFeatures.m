@@ -204,7 +204,6 @@ function [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo)
     entropy = zeros(size(centerInfo,1),1);
     
     for i = 1:size(centerInfo,1)
-        %LOOK HERE FOR SEMICOLONS A LACKING!!!
         numCenters = centerInfo(i,5);
         entropySpread = (hist(double(im(labels==i)),255)./ numCenters) ...
             .*log(hist(double(im(labels==i)),255)./numCenters);
