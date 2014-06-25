@@ -1,5 +1,30 @@
+% slicFeatures
+% Authors: Andrew Gilchrist-Scott & Teo Gelles
+%
+% This file contains the code for runSLIC, which is the main
+% wrapper used in MATLAB in order to run experiments with SLIC_3D
+% and getSLICFeatures.
+
 function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
                                 shapeParam, numIters)
+    % slicFeatures - Returns the list of features obtained from
+    % getSLICFeatures()
+    %
+    % @param imageNum - The numerical index of the image to use in
+    % its given folder
+    % @param dirType - The basic directory under which the image
+    % can be found.  Currently recognizes 'CN', 'MCI', 'AD', or 'IBSR',
+    % which refer to /acmi/fmri/CN_T1, /acmi/fmri/MCI_T1,
+    % /acmi/fmri/AD_T1, and /acmi/fmri/IBSR_nifti_stripped
+    % respectively.   Inputs which do not match one of these are
+    % assumed to refer to the entire directory for the given image.
+    % @param res - The inverse resolution of the image (1 for full,
+    % 2 for half, etc.)
+    % @param numSuperVoxels - The number of superVoxels to use in
+    % SLIC
+    % @param shapeParam - The weight to use for the distance metric
+    % in SLIC
+    % @param numIters - The number of iterations to run SLIC for
     
     % Handles if the user chooses to not input any of the arguments
     if ~exist('numIters','var')
@@ -136,7 +161,7 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
     elseif (strcmp(dirType, 'CN'))
         imageName = strcat('/acmi/fmri/CN_T1/patient', ...
                            int2str(imageNum), '.nii');
-    elseif (strcmp(dirType, 'MCN'))
+    elseif (strcmp(dirType, 'MCI'))
         imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
                            int2str(imageNum), '.nii');
     else
