@@ -101,13 +101,22 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         tissues = load_tissues(tissueFilename, cropOffset, res);
     end
     
+    if strcmp(dirType, 'AD')
+        id = imageNum;
+    elseif strcmp(dirType, 'MCI')
+        id = imageNum + 92;
+    elseif strcmp(dirType, 'CN')
+        id = imageNum + 92 + 203;
+    else
+        id = imageNum+1000;
+    end
     
     featureFilename = strcat('/scratch/tgelles1/summer2014/slic/',...
                              dirType,num2str(imageNum),'.txt');
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
                                       cropOffset,featureFilename, ...
-                                      imageNum);
+                                      id);
 end
 
 
@@ -134,7 +143,7 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
     elseif (strcmp(dirType, 'CN'))
         imageName = strcat('/acmi/fmri/CN_T1/patient', ...
                            int2str(imageNum), '.nii');
-    elseif (strcmp(dirType, 'MCN'))
+    elseif (strcmp(dirType, 'MCI'))
         imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
                            int2str(imageNum), '.nii');
     else
