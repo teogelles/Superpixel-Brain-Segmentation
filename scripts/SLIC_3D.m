@@ -86,6 +86,7 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
             for i = neb(1):neb(2)
                 for j = neb(3):neb(4)
                     for k = neb(5):neb(6)
+                        
                         curVox = [i j k];
                         D = calculateDistance(imageMat,centers(c,:), ...
                                               curVox,shapeParam, ...
@@ -378,7 +379,7 @@ end
 
 function ne = getNeighborhood(mat,sq_rad,i,j,k)
     num_ne = 1;
-    % We claculate the number of neighbors so that we can
+    % We calculate the number of neighbors so that we can
     % preallocate the space for the neighbors array
     if i-sq_rad <= 1
         indi = zeros(1,ceil(i+sq_rad));

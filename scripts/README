@@ -1,0 +1,50 @@
+Swarthmore Summer 2014 CS Research
+Prof. Ameet Soni
+Students: Teo Gelles & Andrew Gilchrist-Scott
+Last Updated: 06/25/2014
+
+
+Directory: /acmi/summer2014/tgelles1/brainseg2014/scripts
+
+This directory contains the main code and scripts used for our brain
+imaging resource that we wrote ourselves.  The UGM package, which our
+code relies on but which we did not write, is in a separate directory.
+
+
+Directory Listing:
+
+./CRF_fastTune.m - Code for running tissue segmentation using CRFs.
+		   The purpose of this file is to find the optimal
+		   number of iterations to run CRF_test with.  Largely
+		   a prettified copy of Chris Magnano's work from 2013
+
+./CRF_test.m - Code for running tissue segmentation using CRFs.  This
+	       is the main learning scripts, where the CRF is actually
+	       trained to recognize tissue types.  Largely a
+	       prettified copy of Chris Magnano's work from 2013
+
+./SLIC_3D.m - Our implementation of the SLIC algorithm for use with
+	      .nii files.  All superpixel implementations we could
+	      find either worked solely in pixels, rather than voxels
+	      as our .nii files come in, or do not run on linux.  This
+	      code fixes both these problems.
+
+./compareSLIC.m - A short scripts to just call runSLIC a few times and
+		  see the results.
+
+./cropBlack.m - A script to remove the black margins around brain
+	      	images in .nii files.  These black margins interfere
+	      	with the accuracy of our SLIC implementation.
+
+./getSLICFeatures.m - A script to obtain different brain "features" or
+		      statistics of the brain based on SLIC and the
+		      tissue segmentation.
+
+./getTissueInfo.m - Code for obtaining information about the
+		    distribution of tissue types throughout the SLIC
+		    supervoxels.
+
+./runSLIC.m - The main interface we used for running the SLIC
+	      algorithm and getting relevant features.  This scripts
+	      organizes the inputs and usage of the SLIC_3D and
+	      getSLICFeatures programs.
