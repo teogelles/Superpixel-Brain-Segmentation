@@ -1,7 +1,6 @@
-function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
-                                               cropOffset,filename)
+function featureList = getSLICFeatures(im, labels, tissues, centerInfo, cropOffset, filename, pid)
     
-    fprintf('Getting SLIC Features\n');
+    fprintf('Getting SLIC Features for Patient %d\n', pid);
     
     outFile = fopen(filename, 'w');
     
@@ -10,15 +9,15 @@ function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
     avgIntensity = getAvgIntensity(centerInfo);
     avgVol = getAvgVol(centerInfo);
     
-    varIntensity = getVarIntensity(centerInfo);
+    [varIntensity varIntensitySV] = getVarIntensity(centerInfo,im,labels);
     varVolume = getVarVolume(centerInfo);
-        
+    
     surfaceArea = getSurfaceArea(labels, centerInfo);
     avgSurfaceArea = getAvgSurfaceArea(surfaceArea);
     varSurfaceArea = getVarSurfaceArea(surfaceArea);                                          
-    [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo);
-    [avgSpreadX avgSpreadY avgSpreadZ] = getAvgSpread(labels, ...
-                                                      centerInfo);
+    [avgEntropy varEntropy entropy] = getEntropyStats(im, labels, centerInfo);
+    [avgSpreadX avgSpreadY avgSpreadZ spreadX spreadY spreadZ] = ...
+        getSpreads(labels, centerInfo);
     
     if (~isnan(tissues))
         tissueInfo = getTissueInfo(labels, tissues, centerInfo);
@@ -26,27 +25,75 @@ function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
         [percentSVGM percentSVWM percentSVCSF] = ...
             getTissuePercentages(tissueInfo);
     end
-        
     
-    fprintf(outFile, 'Average Intensity: %f\n', avgIntensity);
-    fprintf(outFile, 'Average Volume: %f\n', avgVol);
-    fprintf(outFile, 'Average Surface Area: %f\n', avgSurfaceArea);
-    fprintf(outFile, 'Average Entropy: %f\n', avgEntropy);    
-    fprintf(outFile, 'Intensity Variance: %f\n', varIntensity);
-    fprintf(outFile, 'Volume Variance: %f\n', varVolume);
-    fprintf(outFile, 'Surface Area Variance: %f\n', varSurfaceArea);
-    fprintf(outFile, 'Entropy Variance: %f\n', varEntropy);
+    fprintf(outFile, 'numSupervoxels(patientid%d, %d).\n', ...
+            pid, size(centerInfo,1));
+    fprintf(outFile, 'AverageIntensity(patientid%d, %f).\n', pid, avgIntensity);
+    fprintf(outFile, 'AverageVolume(patientid%d, %f).\n', pid, avgVol);
+    fprintf(outFile, 'AverageSurfaceArea(patientid%d, %f).\n', ...
+            pid, avgSurfaceArea);
+    fprintf(outFile, 'AverageEntropy(patientid%d, %f).\n', pid, avgEntropy);    
+    fprintf(outFile, 'VarIntensity(patientid%d, %f).\n', pid, varIntensity);
+    fprintf(outFile, 'VarVolume(patientid%d, %f).\n', pid, varVolume);
+    fprintf(outFile, 'VarSurfaceArea(patientid%d, %f).\n', pid, varSurfaceArea);
+    fprintf(outFile, 'VarEntropy(patientid%d, %f).\n', pid, ...
+            varEntropy);
+    fprintf(outFile, 'AvgXSpread(patientid%d, %f).\n', pid, ...
+            avgSpreadX);
+    fprintf(outFile, 'AvgYSpread(patientid%d, %f).\n', pid, ...
+            avgSpreadY);
+    fprintf(outFile, 'AvgZSpread(patientid%d, %f).\n', pid, ...
+            avgSpreadZ);
+    
     
     if (~isnan(tissues))
-        fprintf(outFile, ['Percentage of Predominately GM Supervoxels: ' ...
-                 '%f\n'], percentSVGM);
-        fprintf(outFile, ['Percentage of Predominately WM Supervoxels: ' ...
-                 '%f\n'], percentSVWM);
-        fprintf(outFile, ['Percentage of Predominately CSF Supervoxels: ' ...
-                 '%f\n'], percentSVCSF);
+        fprintf(outFile, ['PercentagePredominatelyGM(patientid%d, %f).\n'],...
+                pid, percentSVGM);
+        fprintf(outFile, ['PercentagePredominatelyWM(patientid%d, %f).\n'],...
+                pid, percentSVWM);
+        fprintf(outFile, ['PercentagePredominatelyCSF(patientid%d, %f).\n'],...
+                pid, percentSVCSF);
     end
     %fprintf('Printing graph of average intensities');
     %graphIntensities(centerInfo);
+    
+    % For now we're just going to print info for the first ten
+    % supervoxels as a proof of concept formatting
+    for i = round(size(centerInfo,1)/2):round(size(centerInfo,1)/2) ...
+        + 10%1:size(centerInfo,1)
+        fprintf(outFile,'x(patientid%d, SV%d, %f).\n', pid, i, ...
+                centerInfo(i,1));
+        fprintf(outFile,'y(patientid%d, SV%d, %f).\n', pid, i, ...
+                centerInfo(i,2));
+        fprintf(outFile,'z(patientid%d, SV%d, %f).\n', pid, i, ...
+                centerInfo(i,3));
+        fprintf(outFile,'xSpread(patientid%d, SV%d, %f).\n', pid, i, ...
+                spreadX(i));
+        fprintf(outFile,'ySpread(patientid%d, SV%d, %f).\n', pid, i, ...
+                spreadY(i));
+        fprintf(outFile,'zSpread(patientid%d, SV%d, %f).\n', pid, i, ...
+                spreadZ(i));
+        fprintf(outFile,'percentGM(patientid%d, SV%d, %f).\n', pid, i, ...
+                tissueInfo(i,3)/centerInfo(i,5));
+        fprintf(outFile,'percentWM(patientid%d, SV%d, %f).\n', pid, i, ...
+                tissueInfo(i,4)/centerInfo(i,5));
+        fprintf(outFile,'percentCSF(patientid%d, SV%d, %f).\n', pid, i, ...
+                tissueInfo(i,2)/centerInfo(i,5));
+        fprintf(outFile,'AvgIntensityPerSV(patientid%d, SV%d, %f).\n', ...
+                pid, i, centerInfo(i,4));
+        fprintf(outFile,'VolumePerSV(patientid%d, SV%d, %f).\n', ...
+                pid, i, centerInfo(i,5));
+        fprintf(outFile,'VarIntensityPerSV(patientid%d, SV%d, %f).\n', ...
+                pid, i, varIntensitySV(i));
+        fprintf(outFile,'SurfaceAreaPerSV(patientid%d, SV%d, %f).\n', ...
+                pid, i, surfaceArea(i));
+        fprintf(outFile,'EntropyPerSV(patientid%d, SV%d, %f).\n', ...
+                pid, i, entropy(i));
+    end
+    
+    
+    
+    % Feature cell array that can be passed out of this function
     
     if (~isnan(tissues))
         featureList = cell(12, 2);
@@ -85,6 +132,8 @@ function featureList = getSLICFeatures(im, labels, tissues, centerInfo, ...
                             'Supervoxels'];
         featureList{startTissueIndex+2, 2} = percentSVCSF;
     end
+    
+    fclose(outFile);
 end
 
 function isSV = isSurfaceVoxel(i, j, k, labels)
@@ -137,12 +186,18 @@ function avgVol = getAvgVol(centerInfo)
 
     avgVol = mean(centerInfo(:, 5));
 end
-    
-function varIntensity = getVarIntensity(centerInfo)
 
+function [varIntensity varIntensitySV] = getVarIntensity(centerInfo,im,labels)
+
+    varIntensitySV = zeros(size(centerInfo,1));
+    
+    for i = 1:size(centerInfo,1)
+        varIntensitySV(i) = var(im(labels==i));
+    end
+    
     varIntensity = var(centerInfo(:, 4));
 end
- 
+
 function varVolume = getVarVolume(centerInfo)
 
     varVolume = var(centerInfo(:, 5));
@@ -164,7 +219,7 @@ function surfaceArea = getSurfaceArea(labels, centerInfo)
         end
     end
 end
-    
+
 function avgSurfaceArea = getAvgSurfaceArea(surfaceArea)
 
     avgSurfaceArea = mean(surfaceArea);
@@ -199,7 +254,7 @@ function [percentSVGM percentSVWM percentSVCSF] = ...
     percentSVCSF = (totCSF) / (totGM + totWM + totCSF);    
 end
 
-function [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo)
+function [avgEntropy varEntropy entropy] = getEntropyStats(im, labels, centerInfo)
     
     entropy = zeros(size(centerInfo,1),1);
     
@@ -214,8 +269,8 @@ function [avgEntropy varEntropy] = getEntropyStats(im, labels, centerInfo)
     avgEntropy = mean(entropy);
     varEntropy = var(entropy);
 end
-    
-function [avgSpreadX avgSpreadY avgSpreadZ] = getAvgSpread(labels, centerInfo)
+
+function [avgSpreadX avgSpreadY avgSpreadZ spreadX spreadY spreadZ] = getSpreads(labels, centerInfo)
     
     spreads = zeros(size(centerInfo, 1), 3);
     
@@ -231,6 +286,10 @@ function [avgSpreadX avgSpreadY avgSpreadZ] = getAvgSpread(labels, centerInfo)
         spreads(i, 2) = max(cols) - min(cols);
         spreads(i, 3) = max(pages) - min(pages);
     end
+    
+    spreadX = spreads(:,1);
+    spreadY = spreads(:,2);
+    spreadZ = spreads(:,3);
 
     avgSpreadX = mean(spreads(:, 1));
     avgSpreadY = mean(spreads(:, 2));

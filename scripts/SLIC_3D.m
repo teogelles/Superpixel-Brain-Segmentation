@@ -72,36 +72,24 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
     % authors say 10 iterations generally suffices.  We use an
     % adjustable amount
     
-    %disp(centerTracker);
-    %disp(centers);
-    for iterations = 1:2 %numIters
-                         % disp(centers)
+    for iterations = 1:numIters
         
         fprintf('.');
         % centerTracker will keep track of the sum values in each
         % of the supervoxels so that at the end we can adjust the centers
-        centerTracker(:,1:4) = 0;
-        % centerTracker = zeros(size(centers,1),5);
-        
-        counter = 0;
         
         for c = 1:size(centers,1)
             
             neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
                                                    centers(c, 2), ...
                                                    centers(c, 3));
-            disp(neb)
             for i = neb(1):neb(2)
                 for j = neb(3):neb(4)
                     for k = neb(5):neb(6)
-                        counter = counter + 1;
                         curVox = [i j k];
                         D = calculateDistance(imageMat,centers(c,:), ...
                                               curVox,shapeParam, ...
                                               step);
-                        if labels(i,j,k) == c
-                            % disp('We are in!!!')
-                        end
                         
                         if ((D < distances(i,j,k)) || ...
                                 (labels(i,j,k) == c))
@@ -125,8 +113,6 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
                                     - 1;
                             end
                             labels(i, j, k) = c;
-                            %asdfsafsdfsa
-                            % fprintf('in iter %d, setting center %d\n',iterations,c)
                             centerTracker(c,1) = centerTracker(c,1) + i;
                             centerTracker(c,2) = centerTracker(c,2) + j;
                             centerTracker(c,3) = centerTracker(c,3) + k;
@@ -135,14 +121,11 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
                             centerTracker(c,5) = centerTracker(c,5) + ...
                                 1;
                         else
-                            % disp(distances(i,j,k))
                         end
                     end
                 end
             end
         end
-        
-        % disp(counter)
         
         % preallocation of the new centers
         newCenters = zeros(size(centers));
@@ -174,15 +157,12 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
     
     borders = getBorders(imageMat, labels, 0);
     
+    disp(centerTracker)
+    
     % build centerInfo
-    % disp(centerTracker);
-    %disp(centers);
     centerInfo = zeros(size(centers,1),size(centers,2) + 1);
     centerInfo(:,1:size(centers,2)) = centers;
     centerInfo(:,size(centers,2) + 1) = centerTracker(:,end);
-    centerInfo;
-    %dsaknbad;kjbsalkhbvdkjsanbc;ljsaknfdlksajfdaslkfhsalf;khsafkhfsajfdhsadkfjsaf
-    
 end
 
 function seeds = getSeeds(imageMat, step)
@@ -534,15 +514,6 @@ function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, i, j, k)
     end
     if neighborhoodEnds(6) > imageMatSize(3);
         neighborhoodEnds(6) = imageMatSize(3);
-    end
-    
-    if neighborhoodEnds(4) < neighborhoodEnds(3)
-        disp('BadBad')
-        disp(imageMatSize)
-        disp(radius)
-        disp(i)
-        disp(j)
-        disp(k)
     end
     
 end
