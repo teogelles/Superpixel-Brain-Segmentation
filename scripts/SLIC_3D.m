@@ -157,8 +157,6 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
     
     borders = getBorders(imageMat, labels, 0);
     
-    disp(centerTracker)
-    
     % build centerInfo
     centerInfo = zeros(size(centers,1),size(centers,2) + 1);
     centerInfo(:,1:size(centers,2)) = centers;
@@ -483,14 +481,14 @@ end
 
 
 function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, i, j, k)
-    % Function gets the neighborhood ends for a regions around the
-    % center of size radius
-    % @param imageMatSize - size of the image matrix
-    % @param radius - square radius of neighborhood around center
-    % @params i,j,k - x,y,z coordintate of center
-    %
-    % @return neighborhoodEnds - matrix of starts and ends of each
-    % direction of neighborhood
+% Function gets the neighborhood ends for a regions around the
+% center of size radius
+% @param imageMatSize - size of the image matrix
+% @param radius - square radius of neighborhood around center
+% @params i,j,k - x,y,z coordintate of center
+%
+% @return neighborhoodEnds - matrix of starts and ends of each
+% direction of neighborhood
     
     neighborhoodEnds = [floor(i-radius),ceil(i+radius),floor(j-radius), ...
                         ceil(j + radius), floor(k - radius), ceil(k + radius)];
