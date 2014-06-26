@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor/bashMCI.sh
+InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor
+Notification = Never
+getenv = True
+Log = /acmi/summer2014/agilchr1/condorOut/MCI/patient$(Process).log
+Error = /acmi/summer2014/agilchr1/condorOut/MCI/patient$(Process).err
+Output = /acmi/summer2014/agilchr1/condorOut/MCI/patient$(Process).out
+requirements = (Memory > 1000)
+
+Arguments = $(Process)
+queue 203

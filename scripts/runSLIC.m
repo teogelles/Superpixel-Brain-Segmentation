@@ -79,44 +79,42 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     
     % checks if we've already run our primary SLIC code and thus
     % the file already exists
-    %if (0)
-    
-    % exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
-    %     exist(xAddr, 'file') && exist(centerinfoAddr, 'file') && ...
-    %     exist(cropAddr, 'file'))
-    
-    % fprintf('Relevant Files Already Exist, Loading...\n');
-    
-    % labels = load_nifti(slicAddr, imageNum, 1);
-    % X = load_nifti(xAddr, imageNum, 1);
-    
-    % centerInfo = load(centerinfoAddr);
-    % cropOffset = load(cropAddr);
-    
-    % centerInfo = centerInfo.centerInfo;
-    % cropOffset = cropOffset.cropOffset;
-    %else
-    
-    [X cropOffset] = load_nifti(dirType,imageNum,res);
-    
-    [labels border centerInfo] = SLIC_3D(X,numSuperVoxels, ...
-                                         shapeParam, numIters);
-    
-    slicNii = make_nii(labels);
-    borderNii = make_nii(border);
-    xNii = make_nii(X);
-    
-    fprintf('Saving SLIC to %s\n', slicAddr);
-    save_nii(slicNii, slicAddr);
-    fprintf('Saving Border to %s\n', borderAddr);
-    save_nii(borderNii, borderAddr);
-    fprintf('Saving X to %s\n', xAddr);
-    save_nii(xNii, xAddr);
-    fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
-    save(centerinfoAddr, 'centerInfo');
-    fprintf('Saving CropOffset to %s\n', cropAddr);
-    save(cropAddr, 'cropOffset');
-    %end
+    if (exist(slicAddr, 'file') && exist(borderAddr, 'file') && ...
+        exist(xAddr, 'file') && exist(centerinfoAddr, 'file') && ...
+        exist(cropAddr, 'file'))
+        
+        fprintf('Relevant Files Already Exist, Loading...\n');
+        
+        labels = load_nifti(slicAddr, imageNum, 1);
+        X = load_nifti(xAddr, imageNum, 1);
+        
+        centerInfo = load(centerinfoAddr);
+        cropOffset = load(cropAddr);
+        
+        centerInfo = centerInfo.centerInfo;
+        cropOffset = cropOffset.cropOffset;
+    else
+        
+        [X cropOffset] = load_nifti(dirType,imageNum,res);
+        
+        [labels border centerInfo] = SLIC_3D(X,numSuperVoxels, ...
+                                             shapeParam, numIters);
+        
+        slicNii = make_nii(labels);
+        borderNii = make_nii(border);
+        xNii = make_nii(X);
+        
+        fprintf('Saving SLIC to %s\n', slicAddr);
+        save_nii(slicNii, slicAddr);
+        fprintf('Saving Border to %s\n', borderAddr);
+        save_nii(borderNii, borderAddr);
+        fprintf('Saving X to %s\n', xAddr);
+        save_nii(xNii, xAddr);
+        fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
+        save(centerinfoAddr, 'centerInfo');
+        fprintf('Saving CropOffset to %s\n', cropAddr);
+        save(cropAddr, 'cropOffset');
+    end
     
     
     if (strcmp(dirType, 'IBSR'))
@@ -128,15 +126,21 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         tissues = load_tissues(tissueFilename, cropOffset, res);
     end
     
+    if strcmp(dirType, 'AD')
+        id = imageNum;
+    elseif strcmp(dirType, 'MCI')
+        id = imageNum + 92;
+    elseif strcmp(dirType, 'CN')
+        id = imageNum + 92 + 203;
+    else
+        id = imageNum+1000;
+    end
     
     featureFilename = strcat('/scratch/tgelles1/summer2014/slic/',...
                              dirType,num2str(imageNum),'.txt');
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
-                                      cropOffset,featureFilename, ...
-                                      imageNum);
-    
-    hist(centerInfo(:, 4));
+                                      cropOffset,featureFilename, id);
 end
 
 

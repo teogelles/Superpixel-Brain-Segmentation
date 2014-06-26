@@ -1,12 +1,12 @@
 Universe = vanilla
-Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/bashSLICnumIters.sh
-InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts
+Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor/bashSLICnumIters.sh
+InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor/
 Notification = Never
 getenv = True
 Log = /acmi/summer2014/agilchr1/condorOut/SLIC_numIters/inClass$(Process).log
 Error = /acmi/summer2014/agilchr1/condorOut/SLIC_numIters/inClass$(Process).err
 Output = /acmi/summer2014/agilchr1/condorOut/SLIC_numIters/inClass$(Process).out
-requirements = (SlotID == 2) && (Memory > 5000)
+requirements = (Memory > 1500)
 
 Arguments = $(Process)
-queue 8
+queue 27
