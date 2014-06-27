@@ -160,8 +160,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
                              dirType,num2str(imageNum),'.txt');
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
-                                      cropOffset,featureFilename, ...
-                                      id);
+                                      cropOffset,featureFilename, id);
 end
 
 
