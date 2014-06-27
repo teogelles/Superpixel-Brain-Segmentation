@@ -5,7 +5,7 @@
 %TODO: combine low res or MORE LIKELY construct dynamic parameter mapping
 
 
-function CRFGM_ADNI(paramFile,fold,iterations,res,fHead,starter,ender)
+function CRF_ADNI(paramFile,fold,iterations,res,fHead,starter,ender)
 
 
 rmpath('/acmi/chris13/UGM/');
@@ -403,7 +403,7 @@ for i = 1:length(testing)
     %yDecode = int32(UGM_Decode_MaxOfMarginals(nodePot,edgePot,edgeStruct,@UGM_Infer_LBP));
     %yDecode2 = UGM_Infer_LBP(nodePot,edgePot,examples{j}.edgeStruct);
     yDecode = UGM_Decode_ICMrestart(nodePot,edgePot,examples{j}.edgeStruct,30); %last value is number of restarts
-    size(yDecode(yDecode==3))
+    size(yDecode(yDecode==3));
     yDecode = reImage(yDecode, ZmaskFlat{j});
     yDecode(yDecode == 0) = 1;
     
@@ -655,9 +655,9 @@ for i = 1:nExamples
     results = cell(4);
     for j=1:4
         if j == 1
-          tail = '.nii';
+            tail = '.nii';
         else
-          tail = '.nii';
+            tail = '.nii';
         end
         heads{j} = strcat(imDir, heads{j}, 'patient', int2str(i+starter), tail);
         heads{j}
@@ -667,14 +667,14 @@ for i = 1:nExamples
         results{j} = int32(I_T1);
     end
 
-X{i} = results{1};
-marginals = zeros([3 size(results{4})]);
-marginals(1,:,:,:) = results{4}(:,:,:);
-marginals(2,:,:,:) = results{3}(:,:,:);
-marginals(3,:,:,:) = results{2}(:,:,:);
+    X{i} = results{1};
+    marginals = zeros([3 size(results{4})]);
+    marginals(1,:,:,:) = results{4}(:,:,:);
+    marginals(2,:,:,:) = results{3}(:,:,:);
+    marginals(3,:,:,:) = results{2}(:,:,:);
 
-[C y{i}] = max(marginals, [], 1);
-y{i} = reshape(((int32(y{i}).*int32(C > 0.5)) + 1), size(X{i})); %Threshold for marginals 
+    [C y{i}] = max(marginals, [], 1);
+    y{i} = reshape(((int32(y{i}).*int32(C > 0.5)) + 1), size(X{i})); %Threshold for marginals 
 
 end
 fprintf('\n');

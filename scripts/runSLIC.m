@@ -28,7 +28,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     
     % Handles if the user chooses to not input any of the arguments
     if ~exist('numIters','var')
-        numIters = 15;
+        numIters = 18;
     end
     
     if ~exist('shapParam','var')
@@ -51,6 +51,26 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         imageNum = 1;
     end
     
+    %We have noticed that some images are bad, so this will
+    %continue if we're on such an image
+    leaveout = ADNIerrors();
+    exception = MException('ArgumentError:ImageNum',['Bad image ' ...
+                        'number']);
+    
+    if (strcmp(dirType, 'AD'))
+        if any(imageNum == leaveout{1})
+            throw(exception);
+        end
+    elseif (strcmp(dirType, 'MCI'))
+        if any(imageNum == leaveout{2})
+            throw(exception)
+        end
+    elseif (strcmp(dirType, 'CN'))
+        if any(imageNum == leaveout{3})
+            throw(exception)
+        end
+    end
+         
     % base directory
     saveDir = '/scratch/tgelles1/summer2014/slic/';
     
@@ -136,7 +156,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         id = imageNum+1000;
     end
     
-    featureFilename = strcat('/scratch/tgelles1/summer2014/slic/',...
+    featureFilename = strcat('/scratch/tgelles1/summer2014/ADNI_features/',...
                              dirType,num2str(imageNum),'.txt');
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
@@ -161,18 +181,22 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
                                int2str(imageNum), '_ana_strip.nii');
         end
         
-    elseif (strcmp(dirType, 'AD'))
-        
-        imageName = strcat('/acmi/fmri/AD_T1/patient', ...
-                           int2str(imageNum), '.nii');
-    elseif (strcmp(dirType, 'CN'))
-        imageName = strcat('/acmi/fmri/CN_T1/patient', ...
-                           int2str(imageNum), '.nii');
-    elseif (strcmp(dirType, 'MCI'))
-        imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
-                           int2str(imageNum), '.nii');
-    else
-        imageName = dirType;
+    elseif (strcmp(dirType, 'AD')) || (strcmp(dirtype,'MCI')) || ...
+            (strcmp(dirtype,'CN'))
+        imageName = strcat('/scratch/tgelles1/summer2014/ADNI_stripped/', ...
+                           dirType, num2str(imageNum),'.nii');     
+        % The below code is only good for the original, non
+        % skull-stripped images
+        % imageName = strcat('/acmi/fmri/AD_T1/patient', ...
+    %                        int2str(imageNum), '.nii');
+    % elseif (strcmp(dirType, 'CN'))
+    %     imageName = strcat('/acmi/fmri/CN_T1/patient', ...
+    %                        int2str(imageNum), '.nii');
+    % elseif (strcmp(dirType, 'MCI'))
+    %     imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
+    %                        int2str(imageNum), '.nii');
+    % else
+    %     imageName = dirType;
     end
 
     if (~exist(imageName, 'file'))

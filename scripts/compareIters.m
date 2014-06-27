@@ -3,7 +3,7 @@
 
 function compareIters()
     
-    base = '/scratch/tgelles1/summer2014/slic/slic-IBSR-500-20-1-1-';
+    base = '/scratch/tgelles1/summer2014/slic_test/slic-IBSR-500-20-1-1-';
     
     %Set for first iteration, then old will get overwritten, making
     %the name make more sense
@@ -11,13 +11,14 @@ function compareIters()
     
     numVox = size(oldLabels,1)*size(oldLabels,2)*size(oldLabels,3);
     
-    for i = 5:20
+    for i = 5:30
         filename = strcat(base,num2str(i),'.nii');
         newLabels = load_nifti(filename);
         E = sum(sum(sum(newLabels ~= oldLabels)));
         percentE = (E/numVox);
         fprintf('%d change between %d and %d iterations\n', ...
-                percentE,i,i-1);        
+                percentE,i,i-1);
+        oldLabels = newLabels;
     end
 end
 
