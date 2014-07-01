@@ -506,7 +506,7 @@ end
 
 function trainCRF(nExamples, examples, iterations, ...
                   training, w, origY, ZmaskFlat);
-    
+    n
     global saveFile tempDir;
         
     fprintf('\nBeginning Training\n');

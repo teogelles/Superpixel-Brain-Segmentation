@@ -31,7 +31,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         numIters = 18;
     end
     
-    if ~exist('shapParam','var')
+    if ~exist('shapeParam','var')
         shapeParam = 20;
     end
     
@@ -180,10 +180,10 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
                                int2str(imageNum), '_ana_strip.nii');
         end
         
-    elseif (strcmp(dirType, 'AD')) || (strcmp(dirtype,'MCI')) || ...
-            (strcmp(dirtype,'CN'))
-        imageName = strcat('/scratch/tgelles1/summer2014/ADNI_stripped/', ...
-                           dirType, num2str(imageNum),'.nii');     
+    elseif (strcmp(dirType, 'AD')) || (strcmp(dirType,'MCI')) || ...
+            (strcmp(dirType,'CN'))
+        imageName = strcat('/acmi/fmri/ADNI_Stripped/', ...
+                           dirType, sprintf('%03d',imageNum),'.nii');     
         % The below code is only good for the original, non
         % skull-stripped images
         % imageName = strcat('/acmi/fmri/AD_T1/patient', ...
