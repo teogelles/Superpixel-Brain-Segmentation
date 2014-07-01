@@ -38,7 +38,8 @@ function getADNITissues(type,section,weightFile,useCdist,usePriors)
     weights = load(weightFile);
     weights = weights.w;
     [images indImages] = load_nifti(type,section);
-    numImages = size(images,1);
+    %%% For testing, setting numImages to 1 for fast runs
+    numImages = 1; %size(images,1);
     
     fprintf('Creating Neighborhood feature...\n');
     nBors = make_nBors(images, numImages);
@@ -60,14 +61,13 @@ function getADNITissues(type,section,weightFile,useCdist,usePriors)
     brainCRF = makeEdgeStructs(numImages, nStates, origimages, ...
                                sizes, ZmaskFlat);
     
-    clear origImages;
     clear sizes;
 
     brainCRF = prepareBrainCRF(numImages, brainCRF, Zmask, ...
                                nPixelsArray, images, nBors, cDist, ...
                                usePriors, useCdist);
     
-    decode(weights,brainCRF,ZmaskFlat,images,numImages,indImages);
+    decode(weights,brainCRF,ZmaskFlat,origimages,numImages,indImages);
     
     fprintf('Done\n');
 end
@@ -490,7 +490,7 @@ function images = load_spm8_priors(res, tissueNum, imageNum)
     
 end
 
-function decode(weights, brainCRF, ZmaskFlat, images, numImages, indImages)
+function decode(weights, brainCRF, ZmaskFlat, origimages, numImages, indImages)
     
     
     for i = 1:numImages
@@ -505,10 +505,20 @@ function decode(weights, brainCRF, ZmaskFlat, images, numImages, indImages)
         
         yDecode = UGM_Decode_ICMrestart(nodePot,edgePot,...
                                         brainCRF{i}.edgeStruct,30); %last value is number of restarts
+        disp('Size of ydecode:')
+        disp(size(yDecode));
+        disp('Size of ZmaskFlat{i}:');
+        disp(size(ZmaskFlat{i}))
         yDecode = reImage(yDecode, ZmaskFlat{i});
+        disp('Size of ydecode:')
+        disp(size(yDecode));        
         yDecode(yDecode == 0) = 1;
-        [nRows, nCols, nSlices] = size(images{i});
+        [nRows, nCols, nSlices] = size(origimages{i});
+        disp('Size of origimages{i}:');
+        disp(size(origimages{i}));
         yDecode = reshape(yDecode, nRows, nCols, nSlices);
+        disp('Size of ydecode:')
+        disp(size(yDecode));         
 
         imOut = make_nii(yDecode);
         save_nii(imOut, strcat('/acmi/summer2014/ADNI_tissues/', ...

@@ -32,11 +32,11 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     if ~exist('shapeParam','var')
-        shapeParam = 20;
+        shapeParam = 100;
     end
     
     if ~exist('numSuperVoxels','var')
-        numSuperVoxels = 500;
+        numSuperVoxels = 250;
     end
     
     if ~exist('res','var')
@@ -194,8 +194,8 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
     % elseif (strcmp(dirType, 'MCI'))
     %     imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
     %                        int2str(imageNum), '.nii');
-    % else
-    %     imageName = dirType;
+    else
+        imageName = dirType;
     end
 
     if (~exist(imageName, 'file'))

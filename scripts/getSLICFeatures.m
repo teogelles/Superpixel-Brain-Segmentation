@@ -84,8 +84,8 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
         fprintf(outFile, ['percentagepredominatelycsf(patientid%d, %f).\n'],...
                 id, percentSVCSF);
     end
-    %fprintf('Printing graph of average intensities');
-    %graphIntensities(centerInfo);
+    fprintf('Printing graph of average intensities');
+    graphIntensities(centerInfo);
     
     % For now we're just going to print info for the first ten
     % supervoxels as a proof of concept formatting
