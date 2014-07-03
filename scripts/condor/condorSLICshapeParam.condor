@@ -1,12 +1,12 @@
 Universe = vanilla
-Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor/bashSLICshapeParam.sh
-InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor/
+Executable = /acmi/summer2014/tgelles1/brainseg2014/scripts/condor/bashSLICshapeParam.sh
+InitialDir = /acmi/summer2014/tgelles1/brainseg2014/scripts/condor/
 Notification = Never
 getenv = True
-Log = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).log
-Error = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).err
-Output = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).out
+Log = /acmi/summer2014/tgelles1/condorOut/SLIC_shapeParam/inClass$(Process).log
+Error = /acmi/summer2014/tgelles1/condorOut/SLIC_shapeParam/inClass$(Process).err
+Output = /acmi/summer2014/tgelles1/condorOut/SLIC_shapeParam/inClass$(Process).out
 requirements = (Memory > 5000)
 
 Arguments = $(Process)
-queue 40
+queue 20
