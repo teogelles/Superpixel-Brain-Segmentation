@@ -26,7 +26,7 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
 % @param numIters - The number of iterations to run the SLIC loop
 %
 % @return lables - The labels for the supervoxels of imageMat as a matrix
-% @return borders - The borders for the supervoxelated image overlayed on
+% @return borders - The boders for the supervoxelated image overlayed on
 % the original image
 % @return centerInfo - Information on every superVoxel including
 % its average x,y, and z coordinates as well as the number of
@@ -72,7 +72,8 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
     % authors say 10 iterations generally suffices.  We use an
     % adjustable amount
     
-    intenConst = max(imageMat(:));
+    
+    normConst = max(imageMat(:));
     
     for iterations = 1:numIters
         
@@ -92,7 +93,7 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
                         curVox = [i j k];
                         D = calculateDistance(imageMat,centers(c,:), ...
                                               curVox,shapeParam, ...
-                                              step,intenConst);
+                                              step, normConst);
                         
                         if ((D < distances(i,j,k)) || ...
                                 (labels(i,j,k) == c))
@@ -458,7 +459,7 @@ function ne = getNeighborhood(mat,sq_rad,i,j,k)
     end
 end
 
-function dist = calculateDistance(mat,cent,neb,m,s,intenConst)
+function dist = calculateDistance(mat,cent,neb,m,s, normConst)
 % calculateDistance - Returns the distance between a pixel and its
 % center with the special SLIC metric that incorporates both
 % Euclidean distance and color
@@ -476,8 +477,7 @@ function dist = calculateDistance(mat,cent,neb,m,s,intenConst)
     dcq = (cent(4)-mat(neb(1),neb(2),neb(3)))^2;
     % Square of color distance
     
-    
-    dist = sqrt(dcq/(intenConst^2) + (dsq/(s^2))*(m^2));
+    dist = sqrt(dcq/(normConst^2) + (dsq/(s^2))*(m^2));
     % Overall distance
 end
 
