@@ -72,6 +72,8 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
     % authors say 10 iterations generally suffices.  We use an
     % adjustable amount
     
+    intenConst = max(imageMat(:));
+    
     for iterations = 1:numIters
         
         fprintf('.');
@@ -90,7 +92,7 @@ function [labels, borders, centerInfo] = SLIC_3D(imageMat, numSuperVoxels, ...
                         curVox = [i j k];
                         D = calculateDistance(imageMat,centers(c,:), ...
                                               curVox,shapeParam, ...
-                                              step);
+                                              step,intenConst);
                         
                         if ((D < distances(i,j,k)) || ...
                                 (labels(i,j,k) == c))
@@ -456,7 +458,7 @@ function ne = getNeighborhood(mat,sq_rad,i,j,k)
     end
 end
 
-function dist = calculateDistance(mat,cent,neb,m,s)
+function dist = calculateDistance(mat,cent,neb,m,s,intenConst)
 % calculateDistance - Returns the distance between a pixel and its
 % center with the special SLIC metric that incorporates both
 % Euclidean distance and color
@@ -475,7 +477,7 @@ function dist = calculateDistance(mat,cent,neb,m,s)
     % Square of color distance
     
     
-    dist = sqrt(dcq + (dsq/(s^2))*(m^2));
+    dist = sqrt(dcq/(intenConst^2) + (dsq/(s^2))*(m^2));
     % Overall distance
 end
 

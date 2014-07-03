@@ -1,6 +1,6 @@
 %% getADNITissues
 % This program uses a CRF to determine the tissue segmentation on
-% ~300 ADNI brain images.
+% ~400 ADNI brain images.
 %
 % Written by Teo Gelles and Andrew Gilchrist-Scott
 % Advised by Ameet Soni
@@ -32,14 +32,13 @@ function getADNITissues(type,section,weightFile,useCdist,usePriors)
     checkInput(type,section,weightFile);
     
     global dir;
-    dir = makeDirs(usePriors, useCdist);
+    dir = makeDirs(type, section, usePriors, useCdist);
         
     % Load the data
     weights = load(weightFile);
     weights = weights.w;
     [images indImages] = load_nifti(type,section);
-    %%% For testing, setting numImages to 1 for fast runs
-    numImages = 1; %size(images,1);
+    numImages = size(images,1);
     
     fprintf('Creating Neighborhood feature...\n');
     nBors = make_nBors(images, numImages);
@@ -62,12 +61,12 @@ function getADNITissues(type,section,weightFile,useCdist,usePriors)
                                sizes, ZmaskFlat);
     
     clear sizes;
-
+    
     brainCRF = prepareBrainCRF(numImages, brainCRF, Zmask, ...
                                nPixelsArray, images, nBors, cDist, ...
                                usePriors, useCdist);
     
-    decode(weights,brainCRF,ZmaskFlat,origimages,numImages,indImages);
+    decode(weights,brainCRF,ZmaskFlat,origimages,numImages,indImages,type);
     
     fprintf('Done\n');
 end
@@ -98,28 +97,40 @@ function checkInput(type,section,weightfile)
     end
 end
 
-function [images patients] = load_nifti(type,section)
+function [images ret_patients] = load_nifti(type,section)
 %Loads IBSR V2 nifti files
 
     fprintf('Loading Nifti Images');
     
     patients = getPatients(type,section);
-    
     images = cell(size(patients,2),1);
+    ret_patients = zeros(size(patients,2),1);
+    
+    i = 1;
     
     
-    parfor pat_i = patients
+    for pat_i = patients
+        
+        if exist(strcat('/acmi/summer2014/ADNI_tissues/', ...
+                               type,sprintf('%03d',indImages(i)), ...
+                               '_tissueSeg.nii'),'file')
+            continue
+        end
         
         fprintf('.');
         filename = strcat('/acmi/fmri/ADNI_Stripped/',type,...
                           sprintf('%03d',pat_i),'.nii');
-        
         %Image
-        I_t1uncompress = wfu_uncompress_nifti(filename);
+        I_t1uncompress = wfu_uncompress_nifti(filename);n
         I_uncompt1 = spm_vol(I_t1uncompress);
         I_T1 = spm_read_vols(I_uncompt1);
-        images{pat_i} = I_T1;
+        images{i} = I_T1;
+        ret_patients(i) = pat_i;
+        i = i + 1;
     end
+    
+    images = images{1:i};
+    ret_patients = ret_patients(1:i);
     
     fprintf('\n');
 end
@@ -141,9 +152,8 @@ function patients = getPatients(type, section)
     elseif section == 10
         patients = ((step*9)+1):patientsOfType;
     else
-        patients = (section*(step-1) + 1):(section*step);
+        patients = ((section-1)*step + 1):(section*step);
     end
-    patients = patients;
 end
 
 function nBors = make_nBors(images, numImages)
@@ -218,9 +228,10 @@ function [origimages, Zmask, ZmaskFlat, images, nStates, sizes, ...
     images = cor_bias(images,numImages);
 end
 
-function dir = makeDirs(usePriors,useCdist)
-    dir = strcat('/scratch/tgelles1/summer2014/ADNI_temp/decodeCD', ...
-                 num2str(useCdist),'PR',num2str(usePriors),'/');
+function dir = makeDirs(type, section, usePriors,useCdist)
+    dir = strcat('/scratch/tgelles1/summer2014/ADNI_temp/', type, ...
+                 num2str(section),'decodeCD', num2str(useCdist), ...
+                 'PR',num2str(usePriors),'/');
     if ~exist(dir,'dir')
         mkdir(dir);
     end
@@ -490,8 +501,10 @@ function images = load_spm8_priors(res, tissueNum, imageNum)
     
 end
 
-function decode(weights, brainCRF, ZmaskFlat, origimages, numImages, indImages)
+function decode(weights, brainCRF, ZmaskFlat, origimages, numImages, ...
+                indImages,type)
     
+    global dir;    
     
     for i = 1:numImages
 
@@ -504,21 +517,13 @@ function decode(weights, brainCRF, ZmaskFlat, origimages, numImages, indImages)
                                                    brainCRF{i}.edgeStruct,1);
         
         yDecode = UGM_Decode_ICMrestart(nodePot,edgePot,...
-                                        brainCRF{i}.edgeStruct,30); %last value is number of restarts
-        disp('Size of ydecode:')
-        disp(size(yDecode));
-        disp('Size of ZmaskFlat{i}:');
-        disp(size(ZmaskFlat{i}))
-        yDecode = reImage(yDecode, ZmaskFlat{i});
-        disp('Size of ydecode:')
-        disp(size(yDecode));        
+                                        brainCRF{i}.edgeStruct,30); ...
+                  
+        %last value is number of restarts
+        yDecode = reImage(yDecode, ZmaskFlat{i});       
         yDecode(yDecode == 0) = 1;
         [nRows, nCols, nSlices] = size(origimages{i});
-        disp('Size of origimages{i}:');
-        disp(size(origimages{i}));
-        yDecode = reshape(yDecode, nRows, nCols, nSlices);
-        disp('Size of ydecode:')
-        disp(size(yDecode));         
+        yDecode = reshape(yDecode, nRows, nCols, nSlices);         
 
         imOut = make_nii(yDecode);
         save_nii(imOut, strcat('/acmi/summer2014/ADNI_tissues/', ...

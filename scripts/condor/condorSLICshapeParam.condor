@@ -6,7 +6,7 @@ getenv = True
 Log = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).log
 Error = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).err
 Output = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).out
-requirements = (Memory > 5000)
+requirements = (SlotID == 3) && (Memory > 5000)
 
 Arguments = $(Process)
-queue 40
+queue 20
