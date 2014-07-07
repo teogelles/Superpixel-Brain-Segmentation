@@ -189,15 +189,6 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
         % The below code is only good for the original, non
         % skull-stripped images
         % imageName = strcat('/acmi/fmri/AD_T1/patient', ...
-<<<<<<< HEAD
-    %                        num2str(imageNum), '.nii');
-    % elseif (strcmp(dirType, 'CN'))
-    %     imageName = strcat('/acmi/fmri/CN_T1/patient', ...
-    %                        num2str(imageNum), '.nii');
-    % elseif (strcmp(dirType, 'MCI'))
-    %     imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
-    %                        num2str(imageNum), '.nii');
-=======
         %                        num2str(imageNum), '.nii');
         % elseif (strcmp(dirType, 'CN'))
         %     imageName = strcat('/acmi/fmri/CN_T1/patient', ...
@@ -205,7 +196,6 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
         % elseif (strcmp(dirType, 'MCI'))
         %     imageName = strcat('/acmi/fmri/MCI_T1/patient', ...
         %                        num2str(imageNum), '.nii');
->>>>>>> 08d03ea63b57820d148bcf48b770444709c1a63c
     else
         imageName = dirType;
     end
