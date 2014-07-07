@@ -111,14 +111,14 @@ function [images ret_patients] = load_nifti(type,section)
     
     for pat_i = patients
         
-        if exist(strcat('/acmi/summer2014/ADNI_tissues/', ...
+        if exist(strcat('/sonigroup/summer2014/ADNI_tissues/', ...
                                type,sprintf('%03d',indImages(i)), ...
                                '_tissueSeg.nii'),'file')
             continue
         end
         
         fprintf('.');
-        filename = strcat('/acmi/fmri/ADNI_Stripped/',type,...
+        filename = strcat('/sonigroup/fmri/ADNI_Stripped/',type,...
                           sprintf('%03d',pat_i),'.nii');
         %Image
         I_t1uncompress = wfu_uncompress_nifti(filename);n
@@ -462,7 +462,7 @@ function images = load_spm8_priors(res, tissueNum, imageNum)
 % We will only use one of either images or y, but we are unsure of which
 % to use as of yet    
 % IF WE WANT TO USE THIS, WE HAVE TO CHANGE THIS DIRECTORIES
-    file = '/acmi/fmri/IBSR_nifti_stripped/new_Segment_MRF2_dist2/';
+    file = '/sonigroup/fmri/IBSR_nifti_stripped/new_Segment_MRF2_dist2/';
     % Directory we use for the
     % spm8 tissue segmpentation
     % images
@@ -526,7 +526,7 @@ function decode(weights, brainCRF, ZmaskFlat, origimages, numImages, ...
         yDecode = reshape(yDecode, nRows, nCols, nSlices);         
 
         imOut = make_nii(yDecode);
-        save_nii(imOut, strcat('/acmi/summer2014/ADNI_tissues/', ...
+        save_nii(imOut, strcat('/sonigroup/summer2014/ADNI_tissues/', ...
                                type,sprintf('%03d',indImages(i)), ...
                                '_tissueSeg.nii'));
         brainCRF{i} = save_data(dir, brainCRF{i}, i);
