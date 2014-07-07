@@ -8,8 +8,8 @@
 % segmentation capabilities of the UGM CRF model with spm8
 
 %Matlab paths that need to be added to run:
-%addpath(genpath('/acmi/summer2014/USER/brainseg2014/UGM'))
-%addpath(genpath('/acmi/fmri/spm8'))
+%addpath(genpath('/sonigroup/summer2014/USER/brainseg2014/UGM'))
+%addpath(genpath('/sonigroup/fmri/spm8'))
 
 
 function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
@@ -32,7 +32,7 @@ function CRF_test(leaveOut,iterations,res,usePriors,useCdist)
     
 
     % Load IBSR Data
-    [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/', ...
+    [X, y, nExamples] = load_nifti('/sonigroup/fmri/IBSR_nifti_stripped/', ...
                                    res);
 
     % numSuperVoxels = 200;
@@ -816,7 +816,7 @@ function X = load_spm8_priors(res, tissueNum, imageNum)
 % We will only use one of either X or y, but we are unsure of which
 % to use as of yet    
 
-    file = '/acmi/fmri/IBSR_nifti_stripped/new_Segment_MRF2_dist2/';
+    file = '/sonigroup/fmri/IBSR_nifti_stripped/new_Segment_MRF2_dist2/';
     % Directory we use for the
     % spm8 tissue segmpentation
     % images

@@ -7,8 +7,8 @@
 % iterations to run CRF_test with.
 
 % Matlab paths that need to be added to run:
-%        addpath(genpath('/acmi/summer2014/UGM'))
-%        addpath(genpath('/acmi/fmri/spm8'))
+%        addpath(genpath('/sonigroup/summer2014/UGM'))
+%        addpath(genpath('/sonigroup/fmri/spm8'))
 
 function iter = CRF_fastTune(fold,minIter,maxIter,leaveOut,res, usePriors)
     
@@ -21,7 +21,7 @@ function iter = CRF_fastTune(fold,minIter,maxIter,leaveOut,res, usePriors)
     
 
     % Load IBSR Data
-    [X, y, nExamples] = load_nifti('/acmi/fmri/IBSR_nifti_stripped/',res);
+    [X, y, nExamples] = load_nifti('/sonigroup/fmri/IBSR_nifti_stripped/',res);
 
     % Get data for Cross Folding
     [testing, training] = makeCrossFold(fold, nExamples);
@@ -483,7 +483,7 @@ function X = load_spm8_priors(res, tissueNum, imageNum)
 % We will only use one of either X or y, but we are unsure of which
 % to use as of yet    
 
-    file = '/acmi/fmri/IBSR_nifti_stripped/new_Segment_MRF2_dist2/';
+    file = '/sonigroup/fmri/IBSR_nifti_stripped/new_Segment_MRF2_dist2/';
     % Directory we use for the
     % spm8 tissue segmpentation
     % images
