@@ -53,23 +53,23 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     
     %We have noticed that some images are bad, so this will
     %continue if we're on such an image
-    leaveout = ADNIerrors();
-    exception = MException('ArgumentError:ImageNum',['Bad image ' ...
-                        'number']);
+    % leaveout = ADNIerrors();
+    % exception = MException('ArgumentError:ImageNum',['Bad image ' ...
+    %                     'number']);
     
-    if (strcmp(dirType, 'AD'))
-        if any(imageNum == leaveout{1})
-            throw(exception);
-        end
-    elseif (strcmp(dirType, 'MCI'))
-        if any(imageNum == leaveout{2})
-            throw(exception)
-        end
-    elseif (strcmp(dirType, 'CN'))
-        if any(imageNum == leaveout{3})
-            throw(exception)
-        end
-    end
+    % if (strcmp(dirType, 'AD'))
+    %     if any(imageNum == leaveout{1})
+    %         throw(exception);
+    %     end
+    % elseif (strcmp(dirType, 'MCI'))
+    %     if any(imageNum == leaveout{2})
+    %         throw(exception)
+    %     end
+    % elseif (strcmp(dirType, 'CN'))
+    %     if any(imageNum == leaveout{3})
+    %         throw(exception)
+    %     end
+    % end
          
     % base directory
     saveDir = '/scratch/tgelles1/summer2014/slic/';
