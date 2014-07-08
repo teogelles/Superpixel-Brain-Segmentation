@@ -31,11 +31,12 @@ function getADNITissues(type,section,weightFile,useCdist,usePriors)
     
     checkInput(type,section,weightFile);
     
-    global dir, loadType;
+    global dir;
+    global loadType;
     dir = makeDirs(type, section, usePriors, useCdist);
     loadType = 2;
-    % 2 = load section of type
-    % 1 = section is individual patient number
+    % 1 = load section of type
+    % 2 = section is individual patient number
     
     % Load the data
     weights = load(weightFile);
@@ -85,7 +86,7 @@ function checkInput(type,section,weightfile)
         throw(excep);
     end
     
-    if (section < 1) || (section > 10)
+    if (section < 1)
         excep = MException('ArgumentError:section',['Section %d is ' ...
                             'inappropriate. Please input a section ' ...
                             'number between 1 and 10.']);

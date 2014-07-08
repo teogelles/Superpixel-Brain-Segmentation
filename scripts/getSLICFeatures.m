@@ -34,12 +34,12 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     
     outFile = fopen(filename, 'w');
     
-    fprintf(outFile,'//Patient %d \n',1);
+    fprintf(outFile,'//Patient %d \n',id);
     
     avgIntensity = getAvgIntensity(centerInfo);
     avgVol = getAvgVol(centerInfo);
     
-    [varIntensity varIntensitySV] = getVarIntensity(centerInfo,im,labels);
+    [varIntensity varIntensitysv] = getVarIntensity(centerInfo,im,labels);
     varVolume = getVarVolume(centerInfo);
     
     surfaceArea = getSurfaceArea(labels, centerInfo);
@@ -52,7 +52,7 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     if (~isnan(tissues))
         tissueInfo = getTissueInfo(labels, tissues, centerInfo);
         
-        [percentSVGM percentSVWM percentSVCSF] = ...
+        [percentsvGM percentsvWM percentsvCSF] = ...
             getTissuePercentages(tissueInfo);
     end
     
@@ -78,11 +78,11 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     
     if (~isnan(tissues))
         fprintf(outFile, ['percentagepredominatelygm(patientid%d, %f).\n'],...
-                id, percentSVGM);
+                id, percentsvGM);
         fprintf(outFile, ['percentagepredominatelywm(patientid%d, %f).\n'],...
-                id, percentSVWM);
+                id, percentsvWM);
         fprintf(outFile, ['percentagepredominatelycsf(patientid%d, %f).\n'],...
-                id, percentSVCSF);
+                id, percentsvCSF);
     end
     %fprintf('Printing graph of average intensities');
     %graphIntensities(centerInfo);
@@ -90,11 +90,11 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     % For now we're just going to print info for the first ten
     % supervoxels as a proof of concept formatting
     for i = 1:size(centerInfo,1)
-        fprintf(outFile,'x(patientid%d, SV%d, %f).\n', id, i, ...
+        fprintf(outFile,'x(patientid%d, sv%d, %f).\n', id, i, ...
                 centerInfo(i,1));
-        fprintf(outFile,'y(patientid%d, SV%d, %f).\n', id, i, ...
+        fprintf(outFile,'y(patientid%d, sv%d, %f).\n', id, i, ...
                 centerInfo(i,2));
-        fprintf(outFile,'z(patientid%d, SV%d, %f).\n', id, i, ...
+        fprintf(outFile,'z(patientid%d, sv%d, %f).\n', id, i, ...
                 centerInfo(i,3));
         fprintf(outFile,'xspread(patientid%d, sv%d, %f).\n', id, i, ...
                 spreadX(i));
@@ -115,7 +115,7 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
         fprintf(outFile,'volumepersv(patientid%d, sv%d, %f).\n', ...
                 id, i, centerInfo(i,5));
         fprintf(outFile,'varintensitypersv(patientid%d, sv%d, %f).\n', ...
-                id, i, varIntensitySV(i));
+                id, i, varIntensitysv(i));
         fprintf(outFile,'surfaceareapersv(patientid%d, sv%d, %f).\n', ...
                 id, i, surfaceArea(i));
         fprintf(outFile,'entropypersv(patientid%d, sv%d, %f).\n', ...
@@ -155,46 +155,46 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     if (~isnan(tissues))
         featureList{startTissueIndex, 1} = ['Percentage of Predominately GM ' ...
                             'Supervoxels'];
-        featureList{startTissueIndex, 2} = percentSVGM;
+        featureList{startTissueIndex, 2} = percentsvGM;
         featureList{startTissueIndex+1, 1} = ['Percentage of Predominately WM ' ...
                             'Supervoxels'];
-        featureList{startTissueIndex+1, 2} = percentSVWM;
+        featureList{startTissueIndex+1, 2} = percentsvWM;
         featureList{startTissueIndex+2, 1} = ['Percentage of Predominately CSF ' ...
                             'Supervoxels'];
-        featureList{startTissueIndex+2, 2} = percentSVCSF;
+        featureList{startTissueIndex+2, 2} = percentsvCSF;
     end
     
     fclose(outFile);
 end
 
-function isSV = isSurfaceVoxel(i, j, k, labels)
+function issv = isSurfaceVoxel(i, j, k, labels)
 % isSurfaceVoxel - Return true if voxel has another voxel of a
 % different label as a neighbor in any cartesian direction
     
-    isSV = false;
+    issv = false;
     if (i==1 || i==size(labels, 1) || j==1 || j==size(labels, 2) || ...
         k==1 || k==size(labels, 3))
         
-        isSV = true;
+        issv = true;
         return;
     end
 
     for sub_i = [i-1 i+1]
         if labels(sub_i,j,k) ~= labels(i,j,k)
-            isSV = true;
+            issv = true;
             return;
         end
     end
     for sub_j = [j-1 j+1]
         if labels(i,sub_j,k) ~= labels(i,j,k)
-            isSV = true;
+            issv = true;
             return;
         end
     end
 
     for sub_k = [k-1 k+1]
         if labels(i,j,sub_k) ~= labels(i,j,k)
-            isSV = true;
+            issv = true;
             return;
         end
     end
@@ -219,12 +219,12 @@ function avgVol = getAvgVol(centerInfo)
     avgVol = mean(centerInfo(:, 5));
 end
 
-function [varIntensity varIntensitySV] = getVarIntensity(centerInfo,im,labels)
+function [varIntensity varIntensitysv] = getVarIntensity(centerInfo,im,labels)
 
-    varIntensitySV = zeros(size(centerInfo,1));
+    varIntensitysv = zeros(size(centerInfo,1));
     
     for i = 1:size(centerInfo,1)
-        varIntensitySV(i) = var(im(labels==i));
+        varIntensitysv(i) = var(im(labels==i));
     end
     
     varIntensity = var(centerInfo(:, 4));
@@ -263,7 +263,7 @@ function varSurfaceArea = getVarSurfaceArea(surfaceArea)
     varSurfaceArea = var(surfaceArea);
 end
 
-function [percentSVGM percentSVWM percentSVCSF] = ...
+function [percentsvGM percentsvWM percentsvCSF] = ...
         getTissuePercentages(tissueInfo)
     
     totGM = 0;
@@ -281,9 +281,9 @@ function [percentSVGM percentSVWM percentSVCSF] = ...
         end
     end
     
-    percentSVGM = (totGM) / (totGM + totWM + totCSF);
-    percentSVWM = (totWM) / (totGM + totWM + totCSF);
-    percentSVCSF = (totCSF) / (totGM + totWM + totCSF);    
+    percentsvGM = (totGM) / (totGM + totWM + totCSF);
+    percentsvWM = (totWM) / (totGM + totWM + totCSF);
+    percentsvCSF = (totCSF) / (totGM + totWM + totCSF);    
 end
 
 function [avgEntropy varEntropy entropy] = getEntropyStats(im, labels, centerInfo)
