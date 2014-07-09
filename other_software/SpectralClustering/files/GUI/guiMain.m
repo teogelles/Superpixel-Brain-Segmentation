@@ -47,12 +47,7 @@ if ~isequal(handles.FileName, 0)
     set(handles.lstSelectedDimensions, 'Value', []);
     set(handles.lstPlotDimensions, 'Value', []);
     
-    % Load Dataset
-    disp(handles.PathName)
-    disp(handles.FileName)
-    disp(relativepath(handles.PathName))
-    disp(fullfile(relativepath(handles.PathName), handles.FileName))
-    
+    % Load Dataset    
     %    handles.Data = csvread(fullfile(relativepath(handles.PathName), ...
     %   handles.FileName));
     handles.Data = csvread(fullfile(handles.PathName, handles.FileName));
@@ -213,8 +208,12 @@ if ~isequal(saveFile, 0)
     handles = updateStatus(hObject, handles, 'Busy: Saving Clustered Data');
     
     indVector = convertClusterVector(handles.ClusteredData);
-    csvwrite(fullfile(relativepath(savePath), saveFile), ...
-        [indVector handles.Data']);
+    
+    % csvwrite(fullfile(relativepath(savePath), saveFile), ...
+    %     [indVector handles.Data']);
+    csvwrite(fullfile(savePath, saveFile), ...
+             [indVector handles.Data']);
+    
     
     handles = updateStatus(hObject, handles, 'Done: Saving Clustered Data');
 end
