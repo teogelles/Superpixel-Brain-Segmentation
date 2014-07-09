@@ -158,10 +158,12 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     featureFilename = strcat('/scratch/tgelles1/summer2014/ADNI_features/',...
-                             dirType,num2str(imageNum),'.txt');
+                             dirType,sprintf('%03d',imageNum),'.txt');
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
                                       cropOffset,featureFilename, id);
+    
+
 end
 
 
