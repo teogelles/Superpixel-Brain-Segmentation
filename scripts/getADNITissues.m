@@ -27,13 +27,17 @@ function getADNITissues(type,section,weightFile,useCdist,usePriors)
     
     if ~exist('usePriors','var')
         usePriors = false;
-    end
+    end    
     
     checkInput(type,section,weightFile);
     
     global dir;
+    global loadType;
     dir = makeDirs(type, section, usePriors, useCdist);
-        
+    loadType = 2;
+    % 1 = load section of type
+    % 2 = section is individual patient number
+    
     % Load the data
     weights = load(weightFile);
     weights = weights.w;
@@ -82,7 +86,7 @@ function checkInput(type,section,weightfile)
         throw(excep);
     end
     
-    if (section < 1) || (section > 10)
+    if (section < 1)
         excep = MException('ArgumentError:section',['Section %d is ' ...
                             'inappropriate. Please input a section ' ...
                             'number between 1 and 10.']);
@@ -101,8 +105,13 @@ function [images ret_patients] = load_nifti(type,section)
 %Loads IBSR V2 nifti files
 
     fprintf('Loading Nifti Images');
+    global loadType
+    if loadType == 1
+        patients = getPatients(type,section);
+    else
+        patients = section;
+    end
     
-    patients = getPatients(type,section);
     images = cell(size(patients,2),1);
     ret_patients = zeros(size(patients,2),1);
     
@@ -112,7 +121,7 @@ function [images ret_patients] = load_nifti(type,section)
     for pat_i = patients
         
         if exist(strcat('/sonigroup/summer2014/ADNI_tissues/', ...
-                               type,sprintf('%03d',indImages(i)), ...
+                               type,sprintf('%03d',pat_i), ...
                                '_tissueSeg.nii'),'file')
             continue
         end
@@ -121,7 +130,7 @@ function [images ret_patients] = load_nifti(type,section)
         filename = strcat('/sonigroup/fmri/ADNI_Stripped/',type,...
                           sprintf('%03d',pat_i),'.nii');
         %Image
-        I_t1uncompress = wfu_uncompress_nifti(filename);n
+        I_t1uncompress = wfu_uncompress_nifti(filename);
         I_uncompt1 = spm_vol(I_t1uncompress);
         I_T1 = spm_read_vols(I_uncompt1);
         images{i} = I_T1;
@@ -129,8 +138,17 @@ function [images ret_patients] = load_nifti(type,section)
         i = i + 1;
     end
     
-    images = images{1:i};
-    ret_patients = ret_patients(1:i);
+    if i == 1
+        fprintf(['\nAll patients in this section are already ' ...
+                 'segmented.\nExiting...\n']);
+        exit;
+    end
+    newimages = cell((i-1),1);
+    for ind = 1:(i-1)
+        newimages{ind} = images{ind};
+    end
+    images = newimages;
+    ret_patients = ret_patients(1:(i-1));
     
     fprintf('\n');
 end
@@ -159,7 +177,7 @@ end
 function nBors = make_nBors(images, numImages)
 %Make Neighbor Intensities another feature
     nBors = cell(numImages,1);
-    prNbor = cell(numImages,1);
+    rNbor = cell(numImages,1);
     lNbor = cell(numImages,1);
     uNbor = cell(numImages,1);
     dNbor = cell(numImages,1);
@@ -507,7 +525,7 @@ function decode(weights, brainCRF, ZmaskFlat, origimages, numImages, ...
     global dir;    
     
     for i = 1:numImages
-
+        fprintf('Image %d of %d\n',i,numImages);
         brainCRF{i} = load_data(brainCRF{i});
         [nodePot,edgePot] = UGM_CRF_makePotentials(weights, ...
                                                    brainCRF{i}.imagesnode, ...

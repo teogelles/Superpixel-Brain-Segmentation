@@ -32,11 +32,11 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     if ~exist('shapeParam','var')
-        shapeParam = 1;
+        shapeParam = .1;
     end
     
     if ~exist('numSuperVoxels','var')
-        numSuperVoxels = 250;
+        numSuperVoxels = 500;
     end
     
     if ~exist('res','var')
@@ -141,8 +141,9 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         tissues = NaN;
 
     else
-        tissueFilename = strcat('/sonigroup/chris13/results/ADNIresults/', ...
-                                dirType, num2str(imageNum), '_again');
+        tissueFilename = strcat('/sonigroup/summer2014/ADNI_tissues/', ...
+                                dirType, sprintf('%03d',imageNum), ...
+                                '_tissueSeg.nii');
         tissues = load_tissues(tissueFilename, cropOffset, res);
     end
     
@@ -157,10 +158,12 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     featureFilename = strcat('/scratch/tgelles1/summer2014/ADNI_features/',...
-                             dirType,num2str(imageNum),'.txt');
+                             dirType,sprintf('%03d',imageNum),'.txt');
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
                                       cropOffset,featureFilename, id);
+    
+
 end
 
 
