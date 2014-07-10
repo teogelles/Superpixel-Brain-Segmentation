@@ -9,7 +9,7 @@ function testEntropy(fileType, fileNum)
     SPEnd = 1;
     SPWeight = 20;
     
-    entropyMatrix = zeroes((numSVEnd-numSVStart)/numSVStep+1, ...
+    entropyMatrix = zeros((numSVEnd-numSVStart)/numSVStep+1, ...
                            (SPEnd-SPStart)/SPStep+1);
     
     for i=numSVStart:numSVStep:numSVEnd

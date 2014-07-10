@@ -70,4 +70,6 @@ C = kmeans(U, k, 'start', 'cluster', ...
 % vectors as columns
 C = sparse(1:size(D, 1), C, 1);
 
+disp('Here 3')
+
 end
