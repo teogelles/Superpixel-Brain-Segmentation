@@ -9,14 +9,14 @@ function testEntropy(fileType, fileNum)
     SPEnd = 1;
     SPWeight = 20;
     
-    entropyMatrix = zeroes((numSVEnd-numSVStart)/numSVStep+1, ...
-                           (SPEnd-SPStart)/SPStep+1);
+    entropyMatrix = zeros(((numSVEnd-numSVStart)/numSVStep)+1, ...
+                          ((SPEnd-SPStart)/SPStep)+1);
     
     for i=numSVStart:numSVStep:numSVEnd
         for j=SPStart:SPStep:SPEnd
             
             avg = runSLIC(fileNum, fileType, 1, i, j);
-            entropyMatrix(i, j*SPWeight) = avg;
+            entropyMatrix(i, int32(j*SPWeight)) = avg;
         end
     end
     
