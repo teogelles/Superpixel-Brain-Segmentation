@@ -53,6 +53,8 @@ end
 % eigenvalues
 diff   = eps;
 [U, ~] = eigs(L, k, diff);
+figure
+plot(eigs(L, 20, diff),'x');
 
 % in case of the Jordan-Weiss algorithm, we need to normalize
 % the eigenvectors row-wise
