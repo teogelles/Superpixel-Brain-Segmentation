@@ -1,7 +1,9 @@
-FileName = 'lannybarbie.jpg';
+% We've changed this file to screw around with the segmentation
+
+FileName = 'MCI-198-058.png';
 
 
-k         = 2;          % Number of Clusters
+k         = 4;          % Number of Clusters
 Neighbors = 10;         % Number of Neighbors
 
 roundColors = 0;        % Round color values for less strict uniqueness

@@ -50,6 +50,29 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     if ~exist('imageNum','var')
         imageNum = 1;
     end
+    
+    %For the entropy runs, we don't want the images saved
+    saveImages = false;
+    
+    %We have noticed that some images are bad, so this will
+    %continue if we're on such an image
+    % leaveout = ADNIerrors();
+    % exception = MException('ArgumentError:ImageNum',['Bad image ' ...
+    %                     'number']);
+    
+    % if (strcmp(dirType, 'AD'))
+    %     if any(imageNum == leaveout{1})
+    %         throw(exception);
+    %     end
+    % elseif (strcmp(dirType, 'MCI'))
+    %     if any(imageNum == leaveout{2})
+    %         throw(exception)
+    %     end
+    % elseif (strcmp(dirType, 'CN'))
+    %     if any(imageNum == leaveout{3})
+    %         throw(exception)
+    %     end
+    % end
          
     % base directory
     saveDir = '/scratch/tgelles1/summer2014/slic/';
@@ -104,16 +127,18 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         borderNii = make_nii(border);
         xNii = make_nii(X);
         
-        fprintf('Saving SLIC to %s\n', slicAddr);
-        save_nii(slicNii, slicAddr);
-        fprintf('Saving Border to %s\n', borderAddr);
-        save_nii(borderNii, borderAddr);
-        fprintf('Saving X to %s\n', xAddr);
-        save_nii(xNii, xAddr);
-        fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
-        save(centerinfoAddr, 'centerInfo');
-        fprintf('Saving CropOffset to %s\n', cropAddr);
-        save(cropAddr, 'cropOffset');
+        if saveImages
+            fprintf('Saving SLIC to %s\n', slicAddr);
+            save_nii(slicNii, slicAddr);
+            fprintf('Saving Border to %s\n', borderAddr);
+            save_nii(borderNii, borderAddr);
+            fprintf('Saving X to %s\n', xAddr);
+            save_nii(xNii, xAddr);
+            fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
+            save(centerinfoAddr, 'centerInfo');
+            fprintf('Saving CropOffset to %s\n', cropAddr);
+            save(cropAddr, 'cropOffset');
+        end
     end
     
     

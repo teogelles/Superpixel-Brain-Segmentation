@@ -1,4 +1,4 @@
-function W = SimGraph_NearestNeighbors(M, k, Type, sigma)
+function W = sv_SimGraph_NearestNeighbors(M, k, Type, sigma)
 % SIMGRAPH_NEARESTNEIGHBORS Returns kNN similarity graph
 %   Returns adjacency matrix for an k-Nearest Neighbors 
 %   similarity graph
@@ -14,6 +14,10 @@ function W = SimGraph_NearestNeighbors(M, k, Type, sigma)
 %   Author: Ingo Buerk
 %   Year  : 2011/2012
 %   Bachelor Thesis
+%
+%   Editors: Teo Gelles and Andrew Gilchrist-Scott
+%   Year   : 2014
+%   Summer ADNI SV Research
 
 if nargin < 3
    ME = MException('InvalidCall:NotEnoughArguments', ...

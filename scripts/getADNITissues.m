@@ -295,6 +295,9 @@ function brainCRF = makeEdgeStructs(numImages, nStates, origimages, ...
                     % Unclear why iterations for the below is 100
         brainCRF{i}.edgeStruct = UGM_makeEdgeStruct(maskAdj,nStates,1,100);
         clear maskAdj;
+        % AD012 does not seem to run normally, so we will try to do
+        % this without mex
+        brainCRF{i}.edgeStruct.useMex = false;
         brainCRF{i} = save_data(dir, brainCRF{i}, i);
     end
     fprintf('\n');

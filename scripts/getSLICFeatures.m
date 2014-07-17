@@ -36,10 +36,12 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     
     csvfilename = strcat(filename(1:end-4),'.csv');
     
-    outFile = fopen(filename, 'w');
-    outCSV = fopen(csvfilename, 'w');
-    
-    fprintf(outFile,'//Patient %d \n',id);
+    if printingNotEntropy
+        outFile = fopen(filename, 'w');
+        outCSV = fopen(csvfilename, 'w');
+        
+        fprintf(outFile,'//Patient %d \n',id);
+    end
     
     avgIntensity = getAvgIntensity(centerInfo);
     avgVol = getAvgVol(centerInfo);
@@ -178,9 +180,10 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     else
         featureList = avgEntropy;
     end
-    
-    fclose(outFile);
-    fclose(outCSV);
+    if printingNotEntropy
+        fclose(outFile);
+        fclose(outCSV);
+    end
 end
 
 function issv = isSurfaceVoxel(i, j, k, labels)
