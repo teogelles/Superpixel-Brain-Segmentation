@@ -1,13 +1,14 @@
 % Attempt at using the MATLAB standard SVM library to do clustering
 % on our ADNI data
 
-function svmCluster(numAD,numMCI,numCN,numADtest,numMCItest, numCNtest);
+function results = svmCluster(w,numAD,numMCI,numCN,...
+                              numADtest,numMCItest,numCNtest);
     
     if (~exist('numAD','var')) || (~exist('numMCI','var')) || ...
             (~exist('numCN','var')) 
-        numAD = 40;
-        numMCI = 40;
-        numCN = 40;
+        numAD = 30;
+        numMCI = 30;
+        numCN = 30;
     end
     
     if (~exist('numADtest','var')) || (~exist('numMCItest','var')) || ...
@@ -16,17 +17,21 @@ function svmCluster(numAD,numMCI,numCN,numADtest,numMCItest, numCNtest);
         numMCItest = 8;
         numCNtest = 8;
     end
+    
+    if (~exist('w','var'))
+        w = ones(14,1);
+    end
 
     % Changes if we do this with 2 or 3 SVMs, cannot both be false
     global trainMCI;
     global trainCN;
     trainMCI = true;
-    trainCN = true;
+    trainCN = false;
     
     csvFileHead = '/scratch/tgelles1/summer2014/ADNI_features/CSV/';
     
     [training groups] = getTraining(csvFileHead, numAD, numMCI, ...
-                                                 numCN);
+                                                 numCN, w);
     if trainMCI && trainCN
         [AD_SVMstruct CN_SVMstruct MCI_SVMstruct] = trainSVM(training,groups);
     elseif trainCN
@@ -42,24 +47,24 @@ function svmCluster(numAD,numMCI,numCN,numADtest,numMCItest, numCNtest);
     startCN = numCN + 1;
     endCN = numCN + numCNtest;
     
-    [ADtest MCItest CNtest] = getTesting(csvFileHead, startAD, endAD, ...
-                                                      startMCI, endMCI, ...
-                                                      startCN, endCN);
+    [ADtest MCItest CNtest AD_inds MCI_inds CN_inds] = ...
+        getTesting(csvFileHead,startAD,endAD,startMCI,endMCI,startCN,endCN,w);
+    
     if trainMCI && trainCN
-        svmTestWithMCIandCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CN_SVMstruct, ...
-                CNtest);
+        results = svmTestWithMCIandCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CN_SVMstruct, ...
+                                      CNtest,AD_inds,MCI_inds,CN_inds);
     elseif trainCN
-        svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct, ...
-                          CNtest);
+        results = svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct, ...
+                                    CNtest,AD_inds,MCI_inds,CN_inds);
     else
-        svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct, MCItest, ...
-                         CNtest);
+        results = svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct, MCItest, ...
+                                   CNtest,AD_inds,MCI_inds,CN_inds);
     end
     
-    fprintf('Done\n');
+    fprintf('\nDone\n');
 end
 
-function [training groups] = getTraining(csvFileHead,numAD,numMCI,numCN)
+function [training groups] = getTraining(csvFileHead,numAD,numMCI,numCN,w)
 
     fprintf('Getting training images...\n');
     
@@ -82,7 +87,7 @@ function [training groups] = getTraining(csvFileHead,numAD,numMCI,numCN)
         filename = strcat(csvFileHead,'AD',sprintf('%03d',i), ...
                           '.csv');
         AD{i} = csvread(filename);
-        AD{i} = processSV(AD{i});
+        AD{i} = processSV(AD{i},w);
         numADSV = numADSV + size(AD{i},1);
     end
     
@@ -90,7 +95,7 @@ function [training groups] = getTraining(csvFileHead,numAD,numMCI,numCN)
         filename = strcat(csvFileHead,'MCI',sprintf('%03d',i), ...
                           '.csv');
         MCI{i} = csvread(filename);
-        MCI{i} = processSV(MCI{i});
+        MCI{i} = processSV(MCI{i},w);
         numMCISV = numMCISV + size(MCI{i},1);
     end
     
@@ -98,7 +103,7 @@ function [training groups] = getTraining(csvFileHead,numAD,numMCI,numCN)
         filename = strcat(csvFileHead,'CN',sprintf('%03d',i), ...
                           '.csv');
         CN{i} = csvread(filename);
-        CN{i} = processSV(CN{i});
+        CN{i} = processSV(CN{i},w);
         numCNSV = numCNSV + size(CN{i},1);
     end
     
@@ -172,10 +177,8 @@ function [training groups] = getTraining(csvFileHead,numAD,numMCI,numCN)
     end
 end
 
-function [ADtest MCItest CNtest] = getTesting(csvFileHead, startAD, endAD, ...
-                                                           startMCI, ...
-                                                           endMCI, startCN, ...
-                                                           endCN)
+function [ADtest MCItest CNtest AD_inds MCI_inds CN_inds] = ...
+        getTesting(csvFileHead,startAD,endAD,startMCI,endMCI,startCN,endCN,w)
 
     fprintf('Getting testing image(s)...\n');
     
@@ -195,24 +198,27 @@ function [ADtest MCItest CNtest] = getTesting(csvFileHead, startAD, endAD, ...
     for i = startAD:endAD
         filename = strcat(csvFileHead,'AD',sprintf('%03d',i), ...
                           '.csv');
+        %disp(filename)
         AD{i - startAD + 1} = csvread(filename);
-        AD{i - startAD + 1} = processSV(AD{i - startAD + 1});
+        AD{i - startAD + 1} = processSV(AD{i - startAD + 1},w);
         numADSV = numADSV + size(AD{i - startAD + 1},1);
     end
     
     for i = startMCI:endMCI
         filename = strcat(csvFileHead,'MCI',sprintf('%03d',i), ...
                           '.csv');
+        %disp(filename)
         MCI{i - startMCI + 1} = csvread(filename);
-        MCI{i - startMCI + 1} = processSV(MCI{i - startMCI + 1});
+        MCI{i - startMCI + 1} = processSV(MCI{i - startMCI + 1},w);
         numMCISV = numMCISV + size(MCI{i - startMCI + 1},1);
     end
     
     for i = startCN:endCN
         filename = strcat(csvFileHead,'CN',sprintf('%03d',i), ...
                           '.csv');
+        %xdisp(filename)
         CN{i - startCN + 1} = csvread(filename);
-        CN{i - startCN + 1} = processSV(CN{i - startCN + 1});
+        CN{i - startCN + 1} = processSV(CN{i - startCN + 1},w);
         numCNSV = numCNSV + size(CN{i - startCN + 1},1);
     end
     
@@ -225,26 +231,126 @@ function [ADtest MCItest CNtest] = getTesting(csvFileHead, startAD, endAD, ...
     AD_sv = 1;
     MCI_sv = 1;
     CN_sv = 1;
+    AD_inds = zeros(size(AD));
+    MCI_inds = zeros(size(MCI));
+    CN_inds = zeros(size(CN));
     
     for i = 1:numAD
         sizeOfThis = size(AD{i},1);
         ADtest(AD_sv:(AD_sv + sizeOfThis-1),:) = AD{i};
         AD_sv = AD_sv + sizeOfThis;
+        AD_inds(i) = AD_sv;
     end
     for i = 1:numMCI
         sizeOfThis = size(MCI{i},1);
         MCItest(MCI_sv:(MCI_sv + sizeOfThis-1),:) = MCI{i};
         MCI_sv = MCI_sv + sizeOfThis;
+        MCI_inds(i) = MCI_sv;
     end 
     for i = 1:numCN
         sizeOfThis = size(CN{i},1);
         CNtest(CN_sv:(CN_sv + sizeOfThis-1),:) = CN{i};
         CN_sv = CN_sv + sizeOfThis;
+        CN_inds(i) = CN_sv;
     end
 end
 
-function svmTestWithMCIandCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest, ...
-                        CN_SVMstruct,CNtest)
+function brainSV = removeBackgroundSV(superVoxels)
+    
+%threshold can be adjusted based on testing, but since we're only
+%trying to remove background, it should be very low intensity
+    threshold = .06;
+    findByIntensity = false;
+    
+    if findByIntensity
+        minIntensity = min(superVoxels(:,10));
+        maxIntensity = max(superVoxels(:,10));
+        intensityThreshold = minIntensity + (maxIntensity - minIntensity)*threshold;
+
+        
+        brainInd = find(superVoxels(:,10) > intensityThreshold);
+        brainSV = superVoxels(brainInd,:);
+        backgroundInd = find(superVoxels(:,10) < intensityThreshold);
+        backgroundSV = superVoxels(backgroundInd,:);
+        
+        %creating bounding box for finding ventricals
+        boxX = [min(brainSV(:,1)),max(brainSV(:,1))];
+        boxY = [min(brainSV(:,2)),max(brainSV(:,2))];
+        boxZ = [min(brainSV(:,3)),max(brainSV(:,3))];
+        
+        ventricals = find((boxX(1) < backgroundSV(:,1)) & ...
+                          (boxX(2) > backgroundSV(:,1)) & ...
+                          (boxY(1) < backgroundSV(:,2)) & ...
+                          (boxY(2) > backgroundSV(:,2)) & ...
+                          (boxZ(1) < backgroundSV(:,3)) & ...
+                          (boxZ(2) > backgroundSV(:,3)));
+        if size(ventricals,1) ~= 0
+            numBrSV = size(brainSV,1);
+            numVentSV = size(ventricals,1);
+            numFeat = size(brainSV,2);
+            newbrain = zeros(numBrSV + numVentSV, numFeat);
+            newbrain(1:numBrSV,:) = brainSV;
+            newbrain((numBrSV+1):end,:) = backgroundSV(ventricals,:);
+        end
+        fprintf('There are %d ventricals SVs in this brain\n', ...
+                size(ventricals,1));
+        fprintf('There are %d nonvent black SVs in this brain\n',...
+                size(backgroundSV,1) - size(ventricals,1));
+    else
+        brainInd = find((superVoxels(:,7) >= threshold) | ...
+                        (superVoxels(:,8) >= threshold) | ...
+                        (superVoxels(:,9) >= threshold));
+        brainSV = superVoxels(brainInd,:);
+        % fprintf('%d of %d SV kept\n',size(brainInd,1), ...
+        %         size(superVoxels,1));
+    end
+    
+end
+
+function [AD_SVMstruct CN_SVMstruct MCI_SVMstruct] = trainSVM(training, groups)
+    
+    global trainMCI;
+    global trainCN;
+    
+    
+    % Display can be changed to 'iter' for better readouts during the
+    % process and 'final' for the final display once
+    % converged. MaxIter is originally 15000, but it seems to scale
+    % with the size of the training data, but the tests have been
+    % too few to see for certain
+    
+    options = statset('Display', 'off', 'MaxIter', 250000);
+    
+    rbfSig = .5;
+    kFunc = 'linear';
+    
+    fprintf('Training AD SVM...\n');
+    AD_SVMstruct = svmtrain(training,groups{1},'options',options,...
+                            'kernel_function',kFunc);
+    if trainMCI && trainCN
+        fprintf('Training MCI SVM...\n');
+        MCI_SVMstruct = svmtrain(training,groups{2},'options',options,...
+                                 'kernel_function',kFunc);
+        fprintf('Training CN SVM...\n');
+        CN_SVMstruct = svmtrain(training,groups{3},'options',options,...
+                                'kernel_function',kFunc);
+    elseif trainCN
+        fprintf('Training CN SVM...\n');
+        CN_SVMstruct = svmtrain(training,groups{2},'options',options,...
+                                'kernel_function',kFunc);
+        MCI_SVMstruct = NaN;
+    else
+        fprintf('Training MCI SVM...\n');
+        MCI_SVMstruct = svmtrain(training,groups{2},'options',options,...
+                                 'kernel_function',kFunc);
+        CN_SVMstruct = NaN;
+    end
+end
+
+%% SVM testing functions
+
+function results = svmTestWithMCIandCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest, ...
+                                       CN_SVMstruct,CNtest,AD_inds,MCI_inds,CN_inds)
     
     fprintf('Classifying testing images');
     
@@ -346,101 +452,15 @@ function svmTestWithMCIandCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest, ...
     fprintf('CN right: %f\n', length(find(strcmp(CNonCN,'CN')))/ ...
             length(CNonCN));
     
-end
-
-function brainSV = removeBackgroundSV(superVoxels)
-    
-%threshold can be adjusted based on testing, but since we're only
-%trying to remove background, it should be very low intensity
-    threshold = .05;
-    findByIntensity = false;
-    
-    if findByIntensity
-        minIntensity = min(superVoxels(:,10));
-        maxIntensity = max(superVoxels(:,10));
-        intensityThreshold = minIntensity + (maxIntensity - minIntensity)*threshold;
-
-        
-        brainInd = find(superVoxels(:,10) > intensityThreshold);
-        brainSV = superVoxels(brainInd,:);
-        backgroundInd = find(superVoxels(:,10) < intensityThreshold);
-        backgroundSV = superVoxels(backgroundInd,:);
-        
-        %creating bounding box for finding ventricals
-        boxX = [min(brainSV(:,1)),max(brainSV(:,1))];
-        boxY = [min(brainSV(:,2)),max(brainSV(:,2))];
-        boxZ = [min(brainSV(:,3)),max(brainSV(:,3))];
-        
-        ventricals = find((boxX(1) < backgroundSV(:,1)) & ...
-                          (boxX(2) > backgroundSV(:,1)) & ...
-                          (boxY(1) < backgroundSV(:,2)) & ...
-                          (boxY(2) > backgroundSV(:,2)) & ...
-                          (boxZ(1) < backgroundSV(:,3)) & ...
-                          (boxZ(2) > backgroundSV(:,3)));
-        if size(ventricals,1) ~= 0
-            numBrSV = size(brainSV,1);
-            numVentSV = size(ventricals,1);
-            numFeat = size(brainSV,2);
-            newbrain = zeros(numBrSV + numVentSV, numFeat);
-            newbrain(1:numBrSV,:) = brainSV;
-            newbrain((numBrSV+1):end,:) = backgroundSV(ventricals,:);
-        end
-        fprintf('There are %d ventricals SVs in this brain\n', ...
-                size(ventricals,1));
-        fprintf('There are %d nonvent black SVs in this brain\n',...
-                size(backgroundSV,1) - size(ventricals,1));
-    else
-        brainInd = find((superVoxels(:,7) >= threshold) | ...
-                        (superVoxels(:,8) >= threshold) | ...
-                        (superVoxels(:,9) >= threshold));
-        brainSV = superVoxels(brainInd,:);
-        % fprintf('%d of %d SV kept\n',size(brainInd,1), ...
-        %         size(superVoxels,1));
-    end
+    results = [allRight/total mean([kindaRight kindaWrong])/total ...
+               allWrong/total];
     
 end
 
-function [AD_SVMstruct CN_SVMstruct MCI_SVMstruct] = trainSVM(training, groups)
+function results = svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct,CNtest, ...
+                                     AD_inds,MCI_inds,CN_inds)
     
-    global trainMCI;
-    global trainCN;
-    
-    
-    % Display can be changed to 'iter' for better readouts during the
-    % process and 'final' for the final display once
-    % converged. MaxIter is originally 15000, but it seems to scale
-    % with the size of the training data, but the tests have been
-    % too few to see for certain
-    
-    options = statset('Display', 'off', 'MaxIter', 250000);
-    
-    rbfSig = .5;
-    kFunc = 'linear';
-    
-    fprintf('Training AD SVM...\n');
-    AD_SVMstruct = svmtrain(training,groups{1},'options',options,...
-                            'kernel_function',kFunc);
-    if trainMCI && trainCN
-        fprintf('Training MCI SVM...\n');
-        MCI_SVMstruct = svmtrain(training,groups{2},'options',options,...
-                                 'kernel_function',kFunc);
-        fprintf('Training CN SVM...\n');
-        CN_SVMstruct = svmtrain(training,groups{3},'options',options,...
-                                'kernel_function',kFunc);
-    elseif trainCN
-        fprintf('Training CN SVM...\n');
-        CN_SVMstruct = svmtrain(training,groups{2},'options',options,...
-                                'kernel_function',kFunc);
-        MCI_SVMstruct = NaN;
-    else
-        fprintf('Training MCI SVM...\n');
-        MCI_SVMstruct = svmtrain(training,groups{2},'options',options,...
-                                'kernel_function',kFunc);
-        CN_SVMstruct = NaN;
-    end
-end
-
-function svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct,CNtest)
+    doAmbig = false;
     
     fprintf('Classifying testing images');
     
@@ -463,67 +483,365 @@ function svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct,CNtest)
     allRight = 0;
     ambiguous = 0;
     allWrong = 0;
-    
-    for i = 1:size(ADtest,1)
-        if strcmp(ADonAD{i},'AD')
-            if strcmp(ADonCN{i},'not CN')
-                allRight = allRight + 1;
-            else
-                ambiguous = ambiguous + 1;
-            end
-        else
-            allWrong = allWrong + 1;
-        end
-    end
-    
-    for i = 1:size(MCItest,1)
-        if strcmp(MCIonAD{i},'not AD')
-            if strcmp(MCIonCN{i},'not CN')
-                allRight = allRight + 1;
-            else
-                allWrong = allWrong + 1;
-            end
-        else
-            if strcmp(MCIonCN{i},'not CN')
-                allWrong = allWrong + 1;
-            else
-                ambiguous = ambiguous + 1;
-            end
-        end
-    end
-    
-    for i = 1:size(CNtest,1)
-        if strcmp(CNonAD{i},'not AD')
-            if strcmp(CNonCN{i},'CN')
-                allRight = allRight + 1;
-            else
-                allWrong = allWrong + 1;
-            end
-        else
-            if strcmp(CNonCN{i},'CN')
-                ambiguous = ambiguous + 1;
+    if doAmbig
+        for i = 1:size(ADtest,1)
+            if strcmp(ADonAD{i},'AD')
+                if strcmp(ADonCN{i},'not CN')
+                    allRight = allRight + 1;
+                else
+                    ambiguous = ambiguous + 1;
+                end
             else
                 allWrong = allWrong + 1;
             end
         end
+        
+        for i = 1:size(MCItest,1)
+            if strcmp(MCIonAD{i},'not AD')
+                if strcmp(MCIonCN{i},'not CN')
+                    allRight = allRight + 1;
+                else
+                    allWrong = allWrong + 1;
+                end
+            else
+                if strcmp(MCIonCN{i},'not CN')
+                    allWrong = allWrong + 1;
+                else
+                    ambiguous = ambiguous + 1;
+                end
+            end
+        end
+        
+        for i = 1:size(CNtest,1)
+            if strcmp(CNonAD{i},'not AD')
+                if strcmp(CNonCN{i},'CN')
+                    allRight = allRight + 1;
+                else
+                    allWrong = allWrong + 1;
+                end
+            else
+                if strcmp(CNonCN{i},'CN')
+                    ambiguous = ambiguous + 1;
+                else
+                    allWrong = allWrong + 1;
+                end
+            end
+        end
+        adRight = size(find(strcmp(ADonAD,'AD')),1)/size(ADonAD,1);
+        cnRight = size(find(strcmp(CNonCN,'CN')),1)/size(CNonCN,1);
+        mciRight = size(find(strcmp(MCIonAD,'not AD') & ...
+                             strcmp(MCIonCN,'not CN')),1)/size(MCIonAD,1);
+        
+        fprintf('\n||By SV||\n');
+        fprintf('All right: %f\n', allRight/total);
+        fprintf('Ambiguous: %f\n', ambiguous/total);
+        fprintf('All wrong: %f\n', allWrong/total);
+        fprintf('AD right: %f\n', adRight);
+        fprintf('MCI right: %f\n', mciRight);
+        fprintf('CN right: %f\n', cnRight);
+        
+        numADims = size(AD_inds,1);
+        numADright = 0;
+        for i = 1:numADims
+            if i == 1
+                startInd = 1;
+            else
+                startInd = AD_inds(i-1);
+            end
+            endInd = AD_inds(i) - 1;
+            
+            ADSV = 0;
+            MCISV = 0;
+            CNSV = 0;
+            ambigSV = 0;
+            
+            for image_i = startInd:endInd
+                if strcmp(ADonAD{image_i},'AD')
+                    if strcmp(ADonCN{image_i},'not CN')
+                        ADSV = ADSV + 1;
+                    else
+                        ambigSV = ambigSV + 1;
+                    end
+                else
+                    if strcmp(ADonCN{image_i},'not CN')
+                        MCISV = MCISV + 1;
+                    else
+                        CNSV = CNSV + 1;
+                    end
+                end
+            end
+            
+            % ADSV is max, and nothing else is equal
+            if size(find([MCISV CNSV ambigSV] >= ADSV),2) == 0
+                numADright = numADright + 1;
+            end
+        end            
+        
+        percentADright = 100*numADright/numADims;
+        
+        numMCIims = size(MCI_inds,1);
+        numMCIright = 0;
+        for i = 1:numMCIims
+            if i == 1
+                startInd = 1;
+            else
+                startInd = MCI_inds(i-1);
+            end
+            endInd = MCI_inds(i) - 1;
+            
+            ADSV = 0;
+            MCISV = 0;
+            CNSV = 0;
+            ambigSV = 0;
+            
+            for image_i = startInd:endInd
+                if strcmp(MCIonAD{image_i},'AD')
+                    if strcmp(MCIonCN{image_i},'not CN')
+                        ADSV = ADSV + 1;
+                    else
+                        ambigSV = ambigSV + 1;
+                    end
+                else
+                    if strcmp(MCIonCN{image_i},'not CN')
+                        MCISV = MCISV + 1;
+                    else
+                        CNSV = CNSV + 1;
+
+                    end
+                end
+            end
+            
+            % MCISV is max, and nothing else is equal
+            if size(find([ADSV CNSV ambigSV] >= MCISV),2) == 0
+                numMCIright = numMCIright + 1;
+            end
+        end            
+        
+        percentMCIright = 100*numMCIright/numMCIims;
+        
+        numCNims = size(CN_inds,1);
+        numCNright = 0;
+        for i = 1:numCNims
+            if i == 1
+                startInd = 1;
+            else
+                startInd = CN_inds(i-1);
+            end
+            endInd = CN_inds(i) - 1;
+            
+            ADSV = 0;
+            MCISV = 0;
+            CNSV = 0;
+            ambigSV = 0;
+            
+            for image_i = startInd:endInd
+                if strcmp(CNonAD{image_i},'AD')
+                    if strcmp(CNonCN{image_i},'not CN')
+                        ADSV = ADSV + 1;
+                    else
+                        ambigSV = ambigSV + 1;
+                    end
+                else
+                    if strcmp(CNonCN{image_i},'not CN')
+                        MCISV = MCISV + 1;
+                    else
+                        CNSV = CNSV + 1;
+                    end
+                end
+            end
+            
+            % CNSV is max, and nothing else is equal
+            if size(find([MCISV ADSV ambigSV] >= CNSV),2) == 0
+                numCNright = numCNright + 1;
+            end
+        end            
+        
+        percentCNright = 100*numCNright/numCNims;
+
+        fprintf('\n||By image||\n')
+        fprintf('Percent AD right: %3.1f\n',percentADright);
+        fprintf('Percent MCI right: %3.1f\n',percentMCIright);
+        fprintf('Percent CN right: %3.1f\n',percentCNright);
+        
+        results = [allRight/total ambiguous/total allWrong/total];
+
+    else
+        for i = 1:size(ADtest,1)
+            if strcmp(ADonAD{i},'AD') && strcmp(ADonCN{i},'not CN')
+                allRight = allRight + 1;
+            else
+                allWrong = allWrong + 1;
+            end
+        end
+        
+        for i = 1:size(MCItest,1)
+            if strcmp(MCIonAD{i},'not AD')
+                if strcmp(MCIonCN{i},'not CN')
+                    allRight = allRight + 1;
+                else
+                    allWrong = allWrong + 1;
+                end
+            else
+                if strcmp(MCIonCN{i},'not CN')
+                    allWrong = allWrong + 1;
+                else
+                    allRight = allRight + 1;
+                end
+            end
+        end
+        
+        for i = 1:size(CNtest,1)
+            if strcmp(CNonAD{i},'not AD') && strcmp(CNonCN{i},'CN')
+                allRight = allRight + 1;
+            else
+                allWrong = allWrong + 1;
+            end
+
+        end
+        adRight = size(find(strcmp(ADonAD,'AD')),1)/size(ADonAD,1);
+        cnRight = size(find(strcmp(CNonCN,'CN')),1)/size(CNonCN,1);
+        mciRight = size(find((strcmp(MCIonAD,'not AD') & ...
+                              strcmp(MCIonCN,'not CN')) | ...
+                             (strcmp(MCIonAD,'AD') & ...
+                              strcmp(MCIonCN,'CN'))),1)/size(MCIonAD,1);
+        
+        fprintf('\n||By SV||\n');
+        fprintf('All right: %f\n', allRight/total);
+        fprintf('Ambiguous: %f\n', ambiguous/total);
+        fprintf('All wrong: %f\n', allWrong/total);
+        fprintf('AD right: %f\n', adRight);
+        fprintf('MCI right: %f\n', mciRight);
+        fprintf('CN right: %f\n', cnRight);
+        
+        numADims = size(AD_inds,1);
+        numADright = 0;
+        for i = 1:numADims
+            if i == 1
+                startInd = 1;
+            else
+                startInd = AD_inds(i-1);
+            end
+            endInd = AD_inds(i) - 1;
+            
+            ADSV = 0;
+            MCISV = 0;
+            CNSV = 0;
+            
+            for image_i = startInd:endInd
+                if strcmp(ADonAD{image_i},'AD')
+                    if strcmp(ADonCN{image_i},'not CN')
+                        ADSV = ADSV + 1;
+                    else
+                        MCISV = MCISV + 1;
+                    end
+                else
+                    if strcmp(ADonCN{image_i},'not CN')
+                        MCISV = MCISV + 1;
+                    else
+                        CNSV = CNSV + 1;
+                    end
+                end
+            end
+            
+            % ADSV is max, and nothing else is equal
+            if size(find([MCISV CNSV] >= ADSV),2) == 0
+                numADright = numADright + 1;
+            end
+        end            
+        
+        percentADright = 100*numADright/numADims;
+        
+        numMCIims = size(MCI_inds,1);
+        numMCIright = 0;
+        for i = 1:numMCIims
+            if i == 1
+                startInd = 1;
+            else
+                startInd = MCI_inds(i-1);
+            end
+            endInd = MCI_inds(i) - 1;
+            
+            ADSV = 0;
+            MCISV = 0;
+            CNSV = 0;
+            
+            for image_i = startInd:endInd
+                if strcmp(MCIonAD{image_i},'AD')
+                    if strcmp(MCIonCN{image_i},'not CN')
+                        ADSV = ADSV + 1;
+                    else
+                        MCISV = MCISV + 1;
+                    end
+                else
+                    if strcmp(MCIonCN{image_i},'not CN')
+                        MCISV = MCISV + 1;
+                    else
+                        CNSV = CNSV + 1;
+
+                    end
+                end
+            end
+            
+            % MCISV is max, and nothing else is equal
+            if size(find([ADSV CNSV] >= MCISV),2) == 0
+                numMCIright = numMCIright + 1;
+            end
+        end            
+        
+        percentMCIright = 100*numMCIright/numMCIims;
+        
+        numCNims = size(CN_inds,1);
+        numCNright = 0;
+        for i = 1:numCNims
+            if i == 1
+                startInd = 1;
+            else
+                startInd = CN_inds(i-1);
+            end
+            endInd = CN_inds(i) - 1;
+            
+            ADSV = 0;
+            MCISV = 0;
+            CNSV = 0;
+            
+            for image_i = startInd:endInd
+                if strcmp(CNonAD{image_i},'AD')
+                    if strcmp(CNonCN{image_i},'not CN')
+                        ADSV = ADSV + 1;
+                    else
+                        MCISV = MCISV + 1;
+                    end
+                else
+                    if strcmp(CNonCN{image_i},'not CN')
+                        MCISV = MCISV + 1;
+                    else
+                        CNSV = CNSV + 1;
+                    end
+                end
+            end
+            
+            % CNSV is max, and nothing else is equal
+            if size(find([MCISV ADSV] >= CNSV),2) == 0
+                numCNright = numCNright + 1;
+            end
+        end            
+        
+        percentCNright = 100*numCNright/numCNims;
+
+        fprintf('\n||By image||\n')
+        fprintf('Percent AD right: %3.1f\n',percentADright);
+        fprintf('Percent MCI right: %3.1f\n',percentMCIright);
+        fprintf('Percent CN right: %3.1f\n',percentCNright);
+        
+        results = [allRight/total 0 allWrong/total];
+
     end
-    
-    adRight = size(find(strcmp(ADonAD,'AD')),1)/size(ADonAD,1);
-    cnRight = size(find(strcmp(CNonCN,'CN')),1)/size(CNonCN,1);
-    mciRight = size(find(strcmp(MCIonAD,'not AD') & ...
-                        strcmp(MCIonCN,'not CN')),1)/size(MCIonAD,1);
-    
-    fprintf('All right: %f\n', allRight/total);
-    fprintf('Ambiguous: %f\n', ambiguous/total);
-    fprintf('All wrong: %f\n', allWrong/total);
-    fprintf('AD right: %f\n', adRight);
-    fprintf('MCI right: %f\n', mciRight);
-    fprintf('CN right: %f\n', cnRight);
     
     
 end
 
-function svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CNtest)
+function results = svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CNtest,...
+                                    AD_inds,MCI_inds,CN_inds)
     
     fprintf('Classifying testing images');
     
@@ -596,6 +914,7 @@ function svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CNtest)
     cnRight = size(find(strcmp(CNonAD,'not AD') & ...
                         strcmp(CNonMCI,'not MCI')),1)/size(CNonAD,1);
     
+    fprintf('\n||By SV||\n');
     fprintf('All right: %f\n', allRight/total);
     fprintf('Ambiguous: %f\n', ambiguous/total);
     fprintf('All wrong: %f\n', allWrong/total);
@@ -603,24 +922,151 @@ function svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CNtest)
     fprintf('MCI right: %f\n', mciRight);
     fprintf('CN right: %f\n', cnRight);
     
+    numADims = size(AD_inds,1);
+    numADright = 0;
+    for i = 1:numADims
+        if i == 1
+            startInd = 1;
+        else
+            startInd = AD_inds(i-1);
+        end
+        endInd = AD_inds(i) - 1;
+        
+        ADSV = 0;
+        MCISV = 0;
+        CNSV = 0;
+        ambigSV = 0;
+        
+        for image_i = startInd:endInd
+            if strcmp(ADonAD{image_i},'AD')
+                if strcmp(ADonMCI{image_i},'not MCI')
+                    ADSV = ADSV + 1;
+                else
+                    ambigSV = ambigSV + 1;
+                end
+            else
+                if strcmp(ADonMCI{image_i},'not MCI')
+                    CNSV = CNSV + 1;
+                else
+                    MCISV = MCISV + 1;
+                end
+            end
+        end
+        
+        % ADSV is max, and nothing else is equal
+        if size(find([MCISV CNSV ambigSV] >= ADSV),2) == 0
+            numADright = numADright + 1;
+        end
+    end            
+    
+    percentADright = 100*numADright/numADims;
+    
+    numMCIims = size(MCI_inds,1);
+    numMCIright = 0;
+    for i = 1:numMCIims
+        if i == 1
+            startInd = 1;
+        else
+            startInd = MCI_inds(i-1);
+        end
+        endInd = MCI_inds(i) - 1;
+        
+        ADSV = 0;
+        MCISV = 0;
+        CNSV = 0;
+        ambigSV = 0;
+        
+        for image_i = startInd:endInd
+            if strcmp(MCIonAD{image_i},'AD')
+                if strcmp(MCIonMCI{image_i},'not MCI')
+                    ADSV = ADSV + 1;
+                else
+                    ambigSV = ambigSV + 1;
+                end
+            else
+                if strcmp(MCIonMCI{image_i},'not MCI')
+                    CNSV = CNSV + 1;
+                else
+                    MCISV = MCISV + 1;
+                end
+            end
+        end
+        
+        % MCISV is max, and nothing else is equal
+        if size(find([ADSV CNSV ambigSV] >= MCISV),2) == 0
+            numMCIright = numMCIright + 1;
+        end
+    end            
+    
+    percentMCIright = 100*numMCIright/numMCIims;
+    
+    numCNims = size(CN_inds,1);
+    numCNright = 0;
+    for i = 1:numCNims
+        if i == 1
+            startInd = 1;
+        else
+            startInd = CN_inds(i-1);
+        end
+        endInd = CN_inds(i) - 1;
+        
+        ADSV = 0;
+        MCISV = 0;
+        CNSV = 0;
+        ambigSV = 0;
+        
+        for image_i = startInd:endInd
+            if strcmp(CNonAD{image_i},'AD')
+                if strcmp(CNonMCI{image_i},'not MCI')
+                    ADSV = ADSV + 1;
+                else
+                    ambigSV = ambigSV + 1;
+                end
+            else
+                if strcmp(CNonMCI{image_i},'not MCI')
+                    CNSV = CNSV + 1;
+                else
+                    MCISV = MCISV + 1;
+                end
+            end
+        end
+        
+        % CNSV is max, and nothing else is equal
+        if size(find([MCISV ADSV ambigSV] >= CNSV),2) == 0
+            numCNright = numCNright + 1;
+        end
+    end            
+    
+    percentCNright = 100*numCNright/numCNims;
+
+    fprintf('\n||By image||\n')
+    fprintf('Percent AD right: %3.1f\n',percentADright);
+    fprintf('Percent MCI right: %3.1f\n',percentMCIright);
+    fprintf('Percent CN right: %3.1f\n',percentCNright);
+
+    results = [allRight/total ambiguous/total allWrong/total];
     
 end
 
-function newSV = processSV(superVoxels)
-   
-    newSV = removeBackgroundSV(superVoxels);
-    weights = eye(size(newSV,2));
+function newSV = processSV(superVoxels,w)
     
-    % here we choose different weights for our features, hopefully
-    % to exagerate differences between supervoxels
-    weights(7,7) = 100;
-    weights(8,8) = 100;
-    weights(9,9) = 50;
+    newSV = superVoxels; %removeBackgroundSV(superVoxels);
+    newSV = normalizeXYZ(newSV);
     
-    newSV = newSV*weights;
+    w = diag(w);
     
-    newnewSV = zeros(size(newSV(:,1:6)));
-    newnewSV(:,1:3) = newSV(:,1:3);
-    newnewSV(:,4:6) = newSV(:,7:9);
-    newSV = newnewSV;
+    newSV = newSV*w;
+end
+
+function newSV = normalizeXYZ(newSV)
+    
+    mins = [min(newSV(:,1)) min(newSV(:,2)) min(newSV(:,3))];
+    maxes = [max(newSV(:,1)) max(newSV(:,2)) max(newSV(:,3))];
+    for xyz = 1:3
+        % normalizing x,y, and z to be from 0 to 1
+        newSV(:,xyz) = (newSV(:,xyz) - mins(xyz))/...
+            (maxes(xyz) - mins(xyz));
+        % normalizing the spreads to be from 0 to 1
+        newSV(:,xyz + 3) = newSV(:,xyz + 3)/(maxes(xyz) - mins(xyz));
+    end
 end

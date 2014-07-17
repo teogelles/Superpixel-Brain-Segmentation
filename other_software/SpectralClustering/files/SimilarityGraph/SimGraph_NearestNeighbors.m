@@ -52,7 +52,7 @@ for ii = 1:n
     
     %    disp('Here1-3')
     
-    fprintf('Iteration %d of %d\n', ii, n);
+    % fprintf('Iteration %d of %d\n', ii, n);
     
 end
 
