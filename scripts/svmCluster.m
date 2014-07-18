@@ -25,8 +25,14 @@ function results = svmCluster(w,numAD,numMCI,numCN,...
     % Changes if we do this with 2 or 3 SVMs, cannot both be false
     global trainMCI;
     global trainCN;
-    trainMCI = true;
-    trainCN = false;
+    trainMCI = false;
+    trainCN = true;
+    
+    % For diagnosing images, changes how much we weight MCI and CN SVs
+    global ADweight;
+    global MCIweight;
+    ADweight = 1;
+    MCIweight = 1;
     
     csvFileHead = '/scratch/tgelles1/summer2014/ADNI_features/CSV/';
     
@@ -259,7 +265,7 @@ function brainSV = removeBackgroundSV(superVoxels)
     
 %threshold can be adjusted based on testing, but since we're only
 %trying to remove background, it should be very low intensity
-    threshold = .06;
+    threshold = .01;
     findByIntensity = false;
     
     if findByIntensity
@@ -301,8 +307,8 @@ function brainSV = removeBackgroundSV(superVoxels)
                         (superVoxels(:,8) >= threshold) | ...
                         (superVoxels(:,9) >= threshold));
         brainSV = superVoxels(brainInd,:);
-        % fprintf('%d of %d SV kept\n',size(brainInd,1), ...
-        %         size(superVoxels,1));
+        fprintf('%d of %d SV kept\n',size(brainInd,1), ...
+                size(superVoxels,1));
     end
     
 end
@@ -713,6 +719,11 @@ function results = svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct,CN
         fprintf('MCI right: %f\n', mciRight);
         fprintf('CN right: %f\n', cnRight);
         
+        % Used for weighting MCI and AD supervoxels when decideing
+        % the image
+        global MCIweight;
+        global ADweight;
+        
         numADims = size(AD_inds,1);
         numADright = 0;
         for i = 1:numADims
@@ -742,6 +753,9 @@ function results = svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct,CN
                     end
                 end
             end
+            
+            ADSV = ADSV*ADweight;
+            MCISV = MCISV*MCIweight;
             
             % ADSV is max, and nothing else is equal
             if size(find([MCISV CNSV] >= ADSV),2) == 0
@@ -782,6 +796,9 @@ function results = svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct,CN
                 end
             end
             
+            ADSV = ADSV*ADweight;
+            MCISV = MCISV*MCIweight;
+            
             % MCISV is max, and nothing else is equal
             if size(find([ADSV CNSV] >= MCISV),2) == 0
                 numMCIright = numMCIright + 1;
@@ -819,6 +836,10 @@ function results = svmTestWithoutMCI(AD_SVMstruct,ADtest,MCItest,CN_SVMstruct,CN
                     end
                 end
             end
+            
+            
+            ADSV = ADSV*ADweight;
+            MCISV = MCISV*MCIweight;
             
             % CNSV is max, and nothing else is equal
             if size(find([MCISV ADSV] >= CNSV),2) == 0
@@ -922,6 +943,9 @@ function results = svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CN
     fprintf('MCI right: %f\n', mciRight);
     fprintf('CN right: %f\n', cnRight);
     
+    global ADweight;
+    global MCIweight;
+    
     numADims = size(AD_inds,1);
     numADright = 0;
     for i = 1:numADims
@@ -952,6 +976,9 @@ function results = svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CN
                 end
             end
         end
+        
+        ADSV = ADSV*ADweight;
+        MCISV = MCISV*MCIweight;
         
         % ADSV is max, and nothing else is equal
         if size(find([MCISV CNSV ambigSV] >= ADSV),2) == 0
@@ -992,6 +1019,9 @@ function results = svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CN
             end
         end
         
+        ADSV = ADSV*ADweight;
+        MCISV = MCISV*MCIweight;
+        
         % MCISV is max, and nothing else is equal
         if size(find([ADSV CNSV ambigSV] >= MCISV),2) == 0
             numMCIright = numMCIright + 1;
@@ -1031,6 +1061,9 @@ function results = svmTestWithoutCN(AD_SVMstruct,ADtest,MCI_SVMstruct,MCItest,CN
             end
         end
         
+        ADSV = ADSV*ADweight;
+        MCISV = MCISV*MCIweight;
+        
         % CNSV is max, and nothing else is equal
         if size(find([MCISV ADSV ambigSV] >= CNSV),2) == 0
             numCNright = numCNright + 1;
@@ -1050,7 +1083,7 @@ end
 
 function newSV = processSV(superVoxels,w)
     
-    newSV = superVoxels; %removeBackgroundSV(superVoxels);
+    newSV = removeBackgroundSV(superVoxels);
     newSV = normalizeXYZ(newSV);
     
     w = diag(w);
