@@ -52,7 +52,8 @@ end
 % compute the eigenvectors corresponding to the k smallest
 % eigenvalues
 diff   = eps;
-[U, ~] = eigs(L, k, diff);
+[U, V] = eigs(L, k, diff);
+
 
 % in case of the Jordan-Weiss algorithm, we need to normalize
 % the eigenvectors row-wise
