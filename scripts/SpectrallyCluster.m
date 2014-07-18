@@ -5,7 +5,7 @@ function SpectrallyCluster(FileName)
 
     global debug;
     dState = debug;
-    debug = true;
+    debug = false; % Change this line to {dis,en}able debug statements
     % relates to any ddisp and dprintf statements
     
     if ~exist('FileName','var')
@@ -32,7 +32,7 @@ function SpectrallyCluster(FileName)
     if isequal(saveData, 1)
         [savePath, saveFile, ~] = fileparts(FileName);
         
-        csvwrite(strcat(savePath,'/',saveFile,'_normed.nld', Data));
+        csvwrite(strcat(savePath,'/',saveFile,'_normed.nld'), Data);
     end
 
     % now for the clustering
@@ -44,12 +44,12 @@ function SpectrallyCluster(FileName)
         fprintf('- %d connected components found\n', comps);
     end
 
+    if saveData
+        save(strcat(savePath,'/',saveFile,'_simgraph.mat'), SimGraph);
+    end
+    
     fprintf('Clustering Data...\n');
     [C, ~, ~, centers] = SpectralClustering(SimGraph, k, 2);
-    
-    if saveData
-        csvwrite(strcat(savePath,'/',saveFile,'_clustered.csv', C));
-    end
     
     ddisp('this is C')
     ddisp(C);
@@ -62,12 +62,15 @@ function SpectrallyCluster(FileName)
     ddisp(D)
     ddisp(size(D))
 
-    % reshape indicator vector into m-by-n
-    S = reshape(D, m, n);
-    
-    if debug; pause; end
-    ddisp(S)
-    
+    if saveData
+        results = zeros(size(Data',1),size(Data',2) + 1);
+        results(:,1) = D;
+        results(:,2:end) = Data';
+        csvwrite(strcat(savepath,'/',saveFile, ...
+                        '_clustered.csv'),results);
+        clear results
+    end
+        
     debug = dState;
 end
 
