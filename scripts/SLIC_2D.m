@@ -66,31 +66,49 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
     
     fprintf('Superpixelating Image');
 
-    totComps = numIters*size(centers, 1);
+    ijk = 1;
+    
+    totComps = numIters*size(centers, 1)*imageMatSize(1)* ...
+        imageMatSize(2);
+    disp(totComps);
     tenPercent = totComps / 10;
+    onePercent = totComps / 100;
     printCount = 1;
     for iterations = 1:numIters
         for c = 1:size(centers,1)
             
-            if (printCount == tenPercent)
-                fprintf('.');
-                printCount = 1;
-            else
-                printCount = printCount + 1;
-            end
+            % if (printCount == tenPercent)
+            %     fprintf('.');
+            %     printCount = 1;
+            % else
+            %     printCount = printCount + 1;
+            % end
             
-            neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
-                                                   centers(c, 2));
+            % neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
+            %                                        centers(c,
+            %                                        2));
+            
+            neb = [1, imageMatSize(1), 1, imageMatSize(2)];
+            
+            
             for i = neb(1):neb(2)
                 for j = neb(3):neb(4)
+            
+                 
+                    if (printCount == onePercent)
+                        fprintf('.');
+                        printCount = 1;
+                    else
+                        printCount = printCount + 1;
+                    end
                     
                     curVox = [i j];
                     D = calculateDistance(imageMat,centers(c,:), ...
                                           curVox,shapeParam, ...
                                           step, normConst);
                     
-                    if ((D < distances(i,j)) || ...
-                        (labels(i,j) == c))
+
+                    if ((D < distances(i,j)) || (labels(i,j) == c))
                         
                         distances(i, j) = D;
                         if  labels(i,j) ~= -1
@@ -107,6 +125,7 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
                                 centerTracker(labels(i,j),4) ...
                                 - 1;
                         end
+                        
                         labels(i, j) = c;
                         centerTracker(c,1) = centerTracker(c,1) + i;
                         centerTracker(c,2) = centerTracker(c,2) + j;
@@ -116,6 +135,7 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
                     end
                 end
             end
+            ijk = 0;
         end
         
         % preallocation of the new centers
@@ -396,13 +416,13 @@ function dist = calculateDistance(mat,cent,neb,m,s, normConst)
 % @param s - the step size
     
 
-    dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2; ...
+    dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2;
     % Square of Euclidean distance
         
     dcq = (cent(3)-mat(neb(1),neb(2)))^2;
     % Square of color distance
     
-    distq = double(dcq/(normConst^2) + (dsq/(s^2))*(m^2));
+    distq = double(dcq + (dsq/(s^2))*(m^2));
     
     dist = sqrt(distq);
     % Overall distance
@@ -421,7 +441,7 @@ function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, i, j)
 % direction of neighborhood
     
     neighborhoodEnds = [floor(i-radius),ceil(i+radius),floor(j-radius), ...
-                        ceil(j + radius),];
+                        ceil(j + radius)];
     
     % edge cases
     if neighborhoodEnds(1) < 1

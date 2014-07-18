@@ -4,141 +4,141 @@
  **/
 
 /*
-Copyright (C) 2007-12 Andrea Vedaldi and Brian Fulkerson.
-All rights reserved.
+  Copyright (C) 2007-12 Andrea Vedaldi and Brian Fulkerson.
+  All rights reserved.
 
-This file is part of the VLFeat library and is made available under
-the terms of the BSD license (see the COPYING file).
+  This file is part of the VLFeat library and is made available under
+  the terms of the BSD license (see the COPYING file).
 */
 
 /**
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
-@page slic Simple Linear Iterative Clustering (SLIC)
-@author Andrea Vedaldi
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+   @page slic Simple Linear Iterative Clustering (SLIC)
+   @author Andrea Vedaldi
+   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
 
-@ref slic.h implements the *Simple Linear Iterative Clustering* (SLIC)
-algorithm, an image segmentation method described in @cite{achanta10slic}.
+   @ref slic.h implements the *Simple Linear Iterative Clustering* (SLIC)
+   algorithm, an image segmentation method described in @cite{achanta10slic}.
 
-- @ref slic-overview
-- @ref slic-usage
-- @ref slic-tech
+   - @ref slic-overview
+   - @ref slic-usage
+   - @ref slic-tech
 
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
-@section slic-overview Overview
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+   @section slic-overview Overview
+   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
 
-SLIC @cite{achanta10slic} is a simple and efficient method to decompose
-an image in visually homogeneous regions. It is based on a spatially
-localized version of k-means clustering. Similar to mean shift or
-quick shift (@ref quickshift.h), each pixel is associated to a feature
-vector
+   SLIC @cite{achanta10slic} is a simple and efficient method to decompose
+   an image in visually homogeneous regions. It is based on a spatially
+   localized version of k-means clustering. Similar to mean shift or
+   quick shift (@ref quickshift.h), each pixel is associated to a feature
+   vector
 
-@f[
-\Psi(x,y) =
-\left[
-\begin{array}{c}
-\lambda x \\
-\lambda y \\
-I(x,y)
-\end{array}
-\right]
-@f]
+   @f[
+   \Psi(x,y) =
+   \left[
+   \begin{array}{c}
+   \lambda x \\
+   \lambda y \\
+   I(x,y)
+   \end{array}
+   \right]
+   @f]
 
-and then k-means clustering is run on those. As discussed below, the
-coefficient @f$ \lambda @f$ balances the spatial and appearance
-components of the feature vectors, imposing a degree of spatial
-regularization to the extracted regions.
+   and then k-means clustering is run on those. As discussed below, the
+   coefficient @f$ \lambda @f$ balances the spatial and appearance
+   components of the feature vectors, imposing a degree of spatial
+   regularization to the extracted regions.
 
-SLIC takes two parameters: the nominal size of the regions
-(superpixels) @c regionSize and the strength of the spatial
-regularization @c regularizer. The image is first divided into a grid
-with step @c regionSize. The center of each grid tile is then used to
-initialize a corresponding k-means (up to a small shift to avoid
-image edges). Finally, the k-means centers and clusters are refined by
-using the Lloyd algorithm, yielding segmenting the image. As a
-further restriction and simplification, during the k-means iterations
-each pixel can be assigned to only the <em>2 x 2</em> centers
-corresponding to grid tiles adjacent to the pixel.
+   SLIC takes two parameters: the nominal size of the regions
+   (superpixels) @c regionSize and the strength of the spatial
+   regularization @c regularizer. The image is first divided into a grid
+   with step @c regionSize. The center of each grid tile is then used to
+   initialize a corresponding k-means (up to a small shift to avoid
+   image edges). Finally, the k-means centers and clusters are refined by
+   using the Lloyd algorithm, yielding segmenting the image. As a
+   further restriction and simplification, during the k-means iterations
+   each pixel can be assigned to only the <em>2 x 2</em> centers
+   corresponding to grid tiles adjacent to the pixel.
 
-The parameter @c regularizer sets the trade-off between clustering
-appearance and spatial regularization. This is obtained by setting
+   The parameter @c regularizer sets the trade-off between clustering
+   appearance and spatial regularization. This is obtained by setting
 
-@f[
- \lambda = \frac{\mathtt{regularizer}}{\mathtt{regionSize}}
-@f]
+   @f[
+   \lambda = \frac{\mathtt{regularizer}}{\mathtt{regionSize}}
+   @f]
 
-in the definition of the feature @f$ \psi(x,y) @f$.
+   in the definition of the feature @f$ \psi(x,y) @f$.
 
-After the k-means step, SLIC optionally
-removes any segment whose area is smaller than a threshld @c minRegionSize
-by merging them into larger ones.
+   After the k-means step, SLIC optionally
+   removes any segment whose area is smaller than a threshld @c minRegionSize
+   by merging them into larger ones.
 
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
-@section slic-usage Usage from the C library
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+   @section slic-usage Usage from the C library
+   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
 
-To compute the SLIC superpixels of an image use the function
-::vl_slic_segment.
+   To compute the SLIC superpixels of an image use the function
+   ::vl_slic_segment.
 
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
-@section slic-tech Technical details
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+   @section slic-tech Technical details
+   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
 
-SLIC starts by dividing the image domain into a regular grid with @f$
-M \times N @f$ tiles, where
+   SLIC starts by dividing the image domain into a regular grid with @f$
+   M \times N @f$ tiles, where
 
-@f[
+   @f[
    M = \lceil \frac{\mathtt{imageWidth}}{\mathtt{regionSize}} \rceil,
    \quad
    N = \lceil \frac{\mathtt{imageHeight}}{\mathtt{regionSize}} \rceil.
-@f]
+   @f]
 
-A region (superpixel or k-means cluster) is initialized from each grid
-center
+   A region (superpixel or k-means cluster) is initialized from each grid
+   center
 
-@f[
-  x_i = \operatorname{round} i \frac{\mathtt{imageWidth}}{\mathtt{regionSize}}
-  \quad
-  y_j = \operatorname{round} j \frac{\mathtt{imageWidth}}{\mathtt{regionSize}}.
-@f]
+   @f[
+   x_i = \operatorname{round} i \frac{\mathtt{imageWidth}}{\mathtt{regionSize}}
+   \quad
+   y_j = \operatorname{round} j \frac{\mathtt{imageWidth}}{\mathtt{regionSize}}.
+   @f]
 
-In order to avoid placing these centers on top of image
-discontinuities, the centers are then moved in a 3 x 3
-neighbourohood to minimize the edge strength
+   In order to avoid placing these centers on top of image
+   discontinuities, the centers are then moved in a 3 x 3
+   neighbourohood to minimize the edge strength
 
-@f[
+   @f[
    \operatorname{edge}(x,y) =
    \| I(x+1,y) - I(x-1,y) \|_2^2 +
    \| I(x,y+1) - I(x,y-1) \|_2^2.
-@f]
+   @f]
 
-Then the regions are obtained by running k-means clustering, started
-from the centers
+   Then the regions are obtained by running k-means clustering, started
+   from the centers
 
-@f[
-  C = \{ \Psi(x_i,y_j), i=0,1,\dots,M-1\ j=0,1,\dots,N-1 \}
-@f]
+   @f[
+   C = \{ \Psi(x_i,y_j), i=0,1,\dots,M-1\ j=0,1,\dots,N-1 \}
+   @f]
 
-thus obtained. K-means uses the standard LLoyd algorithm alternating
-assigning pixels to the clostest centers a re-estiamting the centers
-as the average of the corresponding feature vectors of the pixel
-assigned to them. The only difference compared to standard k-means is
-that each pixel can be assigned only to the center originated from the
-neighbour tiles. This guarantees that there are exactly four
-pixel-to-center comparisons at each round of minimization, which
-threfore cost @f$ O(n) @f$, where @f$ n @f$ is the number of
-superpixels.
+   thus obtained. K-means uses the standard LLoyd algorithm alternating
+   assigning pixels to the clostest centers a re-estiamting the centers
+   as the average of the corresponding feature vectors of the pixel
+   assigned to them. The only difference compared to standard k-means is
+   that each pixel can be assigned only to the center originated from the
+   neighbour tiles. This guarantees that there are exactly four
+   pixel-to-center comparisons at each round of minimization, which
+   threfore cost @f$ O(n) @f$, where @f$ n @f$ is the number of
+   superpixels.
 
-After k-means has converged, SLIC eliminates any connected region whose
-area is less than @c minRegionSize pixels. This is done by greedily
-merging regions to neighbour ones: the pixels @f$ p @f$ are scanned in
-lexicographical order and the corresponding connected components
-are visited. If a region has already been visited, it is skipped; if not,
-its area is computed and if this is less than  @c minRegionSize its label
-is changed to the one of a neighbour
-region at @f$ p @f$ that has already been vistied (there is always one
-except for the very first pixel).
+   After k-means has converged, SLIC eliminates any connected region whose
+   area is less than @c minRegionSize pixels. This is done by greedily
+   merging regions to neighbour ones: the pixels @f$ p @f$ are scanned in
+   lexicographical order and the corresponding connected components
+   are visited. If a region has already been visited, it is skipped; if not,
+   its area is computed and if this is less than  @c minRegionSize its label
+   is changed to the one of a neighbour
+   region at @f$ p @f$ that has already been vistied (there is always one
+   except for the very first pixel).
 
 */
 
@@ -146,6 +146,9 @@ except for the very first pixel).
 #include "mathop.h"
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 
 /** @brief SLIC superpixel segmentation
  ** @param segmentation segmentation.
@@ -176,6 +179,7 @@ vl_slic_segment (vl_uint32 * segmentation,
                  float regularization,
                  vl_size minRegionSize)
 {
+
   vl_index i, x, y, u, v, k, region ;
   vl_uindex iter ;
   vl_size const numRegionsX = (vl_size) ceil((double) width / regionSize) ;
@@ -280,6 +284,7 @@ vl_slic_segment (vl_uint32 * segmentation,
               float z = atimage(x,y,k) ;
               appearance += (z - centerz) * (z - centerz) ;
             }
+
             distance = appearance + factor * spatial ;
             if (minDistance > distance) {
               minDistance = distance ;
@@ -292,7 +297,7 @@ vl_slic_segment (vl_uint32 * segmentation,
     }
 
     /*
-     VL_PRINTF("vl:slic: iter %d: energy: %g\n", iter, energy) ;
+      VL_PRINTF("vl:slic: iter %d: energy: %g\n", iter, energy) ;
     */
 
     /* check energy termination conditions */
@@ -357,9 +362,9 @@ vl_slic_segment (vl_uint32 * segmentation,
       segment[segmentSize++] = pixel ;
 
       /*
-       find cleanedLabel as the label of an already cleaned
-       region neihbour of this pixel
-       */
+    	find cleanedLabel as the label of an already cleaned
+    	region neighbor of this pixel
+      */
       cleanedLabel = label + 1 ;
       cleaned[pixel] = label + 1 ;
       x = pixel % width ;
@@ -394,7 +399,7 @@ vl_slic_segment (vl_uint32 * segmentation,
         }
       }
 
-      /* change label to cleanedLabel if the semgent is too small */
+      /* change label to cleanedLabel if the segment is too small */
       if (segmentSize < minRegionSize) {
         while (segmentSize > 0) {
           cleaned[segment[--segmentSize]] = cleanedLabel ;
