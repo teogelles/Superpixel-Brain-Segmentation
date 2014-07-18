@@ -3,15 +3,15 @@ import os.path
 
 def main():
     filebase = '/scratch/tgelles1/summer2014/ADNI_features/CSV_NORM/'
-    groupfile = filebase + 'bigger_groups.csv'
-    finalfile = filebase + 'organized_bigger.csv'
+    groupfile = filebase + 'aNewHope_groups.csv'
+    finalfile = filebase + 'organized_aNewHope.csv'
     writer = open(finalfile,'w+')
     group = open(groupfile,'w+')
     diseases = ["AD","MCI","CN"]
     
     for disease_i in range(3):
         diseaseType = diseases[disease_i]
-        for num in range(1,61):
+        for num in range(20,71):
             myfilename = diseaseType + str(num).zfill(3) + '.csv'
             myfilename = filebase + myfilename
             if  not os.path.exists(myfilename):

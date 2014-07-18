@@ -1,10 +1,12 @@
-function [C, L, U] = SpectralClustering(W, k, Type)
+function [C, L, U, centers] = SpectralClustering(W, k, Type)
 %SPECTRALCLUSTERING Executes spectral clustering algorithm
 %   Executes the spectral clustering algorithm defined by
 %   Type on the adjacency matrix W and returns the k cluster
 %   indicator vectors as columns in C.
 %   If L and U are also called, the (normalized) Laplacian and
-%   eigenvectors will also be returned.
+%   eigenvectors will also be returned. If centers is also called,
+%   it will output the centers of each of the clusters to determine
+%   the position of later data 
 %
 %   'W' - Adjacency matrix, needs to be square
 %   'k' - Number of clusters to look for
@@ -21,6 +23,10 @@ function [C, L, U] = SpectralClustering(W, k, Type)
 %   Author: Ingo Buerk
 %   Year  : 2011/2012
 %   Bachelor Thesis
+
+global debug
+dState = debug;
+debug = false;
 
 % calculate degree matrix
 degs = sum(W, 2);
@@ -53,6 +59,7 @@ end
 % eigenvalues
 diff   = eps;
 [U, ~] = eigs(L, k, diff);
+ddisp(U)
 figure
 plot(eigs(L, 20, diff),'x');
 
@@ -65,13 +72,16 @@ end
 % now use the k-means algorithm to cluster U row-wise
 % C will be a n-by-1 matrix containing the cluster number for
 % each data point
-C = kmeans(U, k, 'start', 'cluster', ...
+[C centers] = kmeans(U, k, 'start', 'cluster', ...
                  'EmptyAction', 'singleton');
-             
+       
+ddisp(C)
 % now convert C to a n-by-k matrix containing the k indicator
 % vectors as columns
 C = sparse(1:size(D, 1), C, 1);
 
-%disp('Here 3')
+ddisp(C)
+
+debug = dState;
 
 end

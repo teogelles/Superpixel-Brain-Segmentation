@@ -53,7 +53,7 @@ for ii = 1:n
     indi(1, (ii-1)*k+1:ii*k) = ii;
     indj(1, (ii-1)*k+1:ii*k) = O(1:k);
     inds(1, (ii-1)*k+1:ii*k) = s(1:k);
-    
+   
     %    disp('Here1-3')
     
     % fprintf('Iteration %d of %d\n', ii, n);
