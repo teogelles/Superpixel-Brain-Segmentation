@@ -50,13 +50,15 @@ function btnLoadData_Callback(hObject, ~, handles)
         % Load Dataset    
         %    handles.Data = csvread(fullfile(relativepath(handles.PathName), ...
         %   handles.FileName));
-        handles.Data = csvread(fullfile(handles.PathName, handles.FileName));
+        handles.Data = csvread(fullfile(handles.PathName, ...
+                                        handles.FileName));
+        
         [~, DataName, DataExt] = fileparts(handles.FileName);
         
         % if data is labeled, remove labels
-        if ~isequal(DataExt, handles.DataNonLabeledExt)
-            handles.Data = handles.Data(:, 2:end);
-        end
+        % if ~isequal(DataExt, handles.DataNonLabeledExt)
+        %     handles.Data = handles.Data(:, 2:end);
+        % end
         
         handles.Data = handles.Data';
         
@@ -85,7 +87,8 @@ function btnLoadData_Callback(hObject, ~, handles)
         end
         handles = updateNormalized(hObject, handles);
         
-        handles = updateStatus(hObject, handles, 'Done: Load Dataset');
+        handles = updateStatus(hObject, handles, ['Done: Load ' ...
+                            'Dataset']);
     end
 
     guidata(hObject, handles);
@@ -113,13 +116,15 @@ function btnSaveData_Callback(hObject, eventdata, handles)
 
     guidata(hObject, handles);
 
-function btnDataNormalize_Callback(hObject, eventdata, handles)
-
+function btnDataNormalize_Callback(hObject, eventdata, handles)    
+    
     handles = updateStatus(hObject, handles, ...
                            'Busy: Normalizing Data');
-
+    
     handles.Data = normalizeData(handles.Data);
+    
 
+    
     handles.isNormalized = 1;
     handles = updateNormalized(hObject, handles);
 
@@ -241,7 +246,8 @@ function btnSimGraphCreate_Callback(hObject, ~, handles)
 
     handles = updateStatus(hObject, handles, ...
                            'Busy: Creating similarity graph');
-
+    
+    %dlmwrite('guioutData1.txt', handles.Data);
     handles.timeSimGraph = tic;
     switch handles.currentSimGraphType
       case 1

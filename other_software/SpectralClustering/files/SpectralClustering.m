@@ -83,5 +83,4 @@ C = sparse(1:size(D, 1), C, 1);
 ddisp(C)
 
 debug = dState;
-
 end

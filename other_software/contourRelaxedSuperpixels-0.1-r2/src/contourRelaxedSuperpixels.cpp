@@ -1,4 +1,5 @@
-// Copyright 2013 Visual Sensorics and Information Processing Lab, Goethe University, Frankfurt
+// Copyright 2013 Visual Sensorics and Information Processing Lab,
+// Goethe University, Frankfurt
 //
 // This file is part of Contour-relaxed Superpixels.
 //
@@ -22,6 +23,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 #include <boost/version.hpp>
 #include <boost/cstdint.hpp>
@@ -34,7 +36,7 @@
 #include "contourRelaxation/InitializationFunctions.h"
 #include "VisualizationHelper.h"
 
-
+using namespace std;
 /**
  * @brief Main function. Reads input image, creates superpixels and saves results and some visualizations.
  * @param argc number of command line arguments
@@ -202,6 +204,9 @@ int main(int argc, char* argv[])
 
     // Save label image.
     // For TLabelImage = boost::uint16_t, this saves a 16bit PNG file which conserves all the labels.
+    cout << "Mat rows: " << relaxedLabelImage.rows << endl;
+    cout << "Mat cols: " << relaxedLabelImage.cols << endl;
+
     cv::imwrite(shortInputName + "_labelImage.png", relaxedLabelImage);
 
     // Save region mean image.
