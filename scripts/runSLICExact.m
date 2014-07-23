@@ -28,7 +28,7 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
     
     % Handles if the user chooses to not input any of the arguments
     if ~exist('numIters','var')
-        numIters = 10;
+        numIters = 18;
     end
     
     if ~exist('shapeParam','var')
@@ -151,7 +151,7 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
         id = imageNum+1000;
     end
     
-    featureFilename = strcat('/scratch/tgelles1/summer2014/ADNI_features/',...
+    featureFilename = strcat('/scratch/tgelles1/summer2014/slicExact/features/',...
                              imageType,sprintf('%03d',imageNum),'.txt');
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
