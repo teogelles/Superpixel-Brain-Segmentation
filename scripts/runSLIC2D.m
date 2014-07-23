@@ -8,6 +8,6 @@ function runSLIC2D(imageName, numSuperpixels, shapeParam, numIters)
     [labels border centerInfo] = SLIC_2D(imageMatrix,numSuperpixels, ...
                                          shapeParam, numIters);
     
-    imwrite(labels, 'testLabels.png')
-    imwrite(border, 'testBorders.png');
+    imwrite(uint8(labels), '/scratch/tgelles1/summer2014/temp/testLabels.png')
+    imwrite(uint8(border), '/scratch/tgelles1/summer2014/temp/testBorders.png');
 end

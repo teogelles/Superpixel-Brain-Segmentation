@@ -41,10 +41,12 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
         shapeParam = 20;
         fprintf('Setting shapeParam to default of 20');
     end
-    if ~(numSuperPixels) || (numSuperPixels < 0)
+    if (numSuperPixels <= 0)
         numSuperPixels = 200;
         fprintf('Setting numSuperPixels to defualt of 200');
     end
+    
+    imageMat = double(imageMat);
     
     numPixels = size(imageMat,1)*size(imageMat,2);
 
@@ -73,32 +75,26 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
 
     ijk = 1;
     
-    totComps = numIters*size(centers, 1)*imageMatSize(1)* ...
-        imageMatSize(2);
-    disp(totComps);
+    totComps = numIters*size(centers, 1);
     tenPercent = totComps / 10;
     onePercent = totComps / 100;
     printCount = 1;
     for iterations = 1:numIters
         for c = 1:size(centers,1)
             
-            % if (printCount == tenPercent)
-            %     fprintf('.');
-            %     printCount = 1;
-            % else
-            %     printCount = printCount + 1;
-            % end
+            if (printCount == tenPercent)
+                fprintf('.');
+                printCount = 1;
+            else
+                printCount = printCount + 1;
+            end
+
             
             neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
                                                    centers(c,2));
             
-            % neb = [1, imageMatSize(1), 1, imageMatSize(2)];
-            
-            
             for i = neb(1):neb(2)
                 for j = neb(3):neb(4)
-                    
-                    
                     if (printCount == onePercent)
                         fprintf('.');
                         printCount = 1;
@@ -158,6 +154,14 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
         end
         
         centers = newCenters;
+        
+        % fprintf('\n');
+        % borders = getBorders(imageMat, labels, 0);
+        % fprintf('\n');
+        % filename = strcat('./temp/image', num2str(iterations), ...
+        %                   '.png');
+        % disp(filename);
+        % imwrite(uint8(borders), filename);
     end
 
     fprintf('\n');
