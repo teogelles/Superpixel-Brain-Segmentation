@@ -32,14 +32,16 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
 % its average x,y, and z coordinates as well as the number of
 % pixels that are members 
     
-    if ~(shapeParam) || (shapeParam < 0)
+    if (shapeParam < 0)
         shapeParam = 20;
         fprintf('Setting shapeParam to default of 20');
     end
-    if ~(numSuperPixels) || (numSuperPixels < 0)
+    if (numSuperPixels <= 0)
         numSuperPixels = 200;
         fprintf('Setting numSuperPixels to defualt of 200');
     end
+    
+    imageMat = double(imageMat);
     
     numPixels = size(imageMat,1)*size(imageMat,2);
 
@@ -68,40 +70,26 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
 
     ijk = 1;
     
-    totComps = numIters*size(centers, 1)*imageMatSize(1)* ...
-        imageMatSize(2);
-    disp(totComps);
+    totComps = numIters*size(centers, 1);
     tenPercent = totComps / 10;
     onePercent = totComps / 100;
     printCount = 1;
     for iterations = 1:numIters
         for c = 1:size(centers,1)
             
-            % if (printCount == tenPercent)
-            %     fprintf('.');
-            %     printCount = 1;
-            % else
-            %     printCount = printCount + 1;
-            % end
+            if (printCount == tenPercent)
+                fprintf('.');
+                printCount = 1;
+            else
+                printCount = printCount + 1;
+            end
             
-            % neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
-            %                                        centers(c,
-            %                                        2));
-            
-            neb = [1, imageMatSize(1), 1, imageMatSize(2)];
-            
+            neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
+                                                   centers(c,2));
             
             for i = neb(1):neb(2)
                 for j = neb(3):neb(4)
-            
-                 
-                    if (printCount == onePercent)
-                        fprintf('.');
-                        printCount = 1;
-                    else
-                        printCount = printCount + 1;
-                    end
-                    
+
                     curVox = [i j];
                     D = calculateDistance(imageMat,centers(c,:), ...
                                           curVox,shapeParam, ...
@@ -154,6 +142,14 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
         end
         
         centers = newCenters;
+        
+        % fprintf('\n');
+        % borders = getBorders(imageMat, labels, 0);
+        % fprintf('\n');
+        % filename = strcat('./temp/image', num2str(iterations), ...
+        %                   '.png');
+        % disp(filename);
+        % imwrite(uint8(borders), filename);
     end
 
     fprintf('\n');
@@ -422,7 +418,7 @@ function dist = calculateDistance(mat,cent,neb,m,s, normConst)
     dcq = (cent(3)-mat(neb(1),neb(2)))^2;
     % Square of color distance
     
-    distq = double(dcq + (dsq/(s^2))*(m^2));
+    distq = double(dcq/(normConst^2) + (dsq/(s^2))*(m^2));
     
     dist = sqrt(distq);
     % Overall distance

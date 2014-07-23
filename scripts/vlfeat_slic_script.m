@@ -7,6 +7,8 @@ function vlfeat_slic_script(imageName, regionSize, regularizer)
     
     segments = vl_slic(single(im), regionSize, regularizer);
     
+    disp(segments);
+    
     perim = true(size(im,1), size(im,2));
     for k = 1 : max(segments(:))
         regionK = segments == k;
@@ -19,5 +21,8 @@ function vlfeat_slic_script(imageName, regionSize, regularizer)
     perim = uint8(perim);
     
     finalImage = im .* perim;
+    imwrite(finalImage, ['/scratch/tgelles1/summer2014/temp/' ...
+                        'vlfeatSLIC.png']);
+    
     imshow(finalImage);
 end
