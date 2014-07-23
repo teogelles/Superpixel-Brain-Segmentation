@@ -31,7 +31,7 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     % column.
     
     %printing versus entropy, hardcoded value dictating performance
-    printingNotEntropy = false;
+    printingNotEntropy = true;
     fprintf('Getting SLIC Features for Patient %d\n', id);
     
     csvfilename = strcat(filename(1:end-4),'.csv');

@@ -40,7 +40,8 @@ function W = sv_SimGraph_NearestNeighbors(M, k, Type, sigma)
 
     for ii = 1:n
         % Compute i-th column of distance matrix
-        dist = distEuclidean(repmat(M(:, ii), 1, n), M);
+        dist = distEuclidean(repmat(M(1:3, ii), 1, n), M(1:3));
+        simDist = distEuclidean(repmat(M(4:end, ii), 1, n), M(4:end));
         
         % Sort row by distance
         [s, O] = sort(dist, 'ascend');
@@ -48,7 +49,7 @@ function W = sv_SimGraph_NearestNeighbors(M, k, Type, sigma)
         % Save indices and value of the k 
         indi(1, (ii-1)*k+1:ii*k) = ii;
         indj(1, (ii-1)*k+1:ii*k) = O(1:k);
-        inds(1, (ii-1)*k+1:ii*k) = s(1:k);
+        inds(1, (ii-1)*k+1:ii*k) = simDist(O(1:k));
     end
 
     % Create sparse matrix
