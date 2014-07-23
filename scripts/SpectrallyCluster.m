@@ -18,8 +18,8 @@ function SpectrallyCluster(FileName)
                            'ADNI_features/CSV_NORM/'], FileName);
     end
 
-    k         = 3;          % Number of Clusters
-    Neighbors = 10;         % Number of Neighbors
+    k         = 4;          % Number of Clusters
+    Neighbors = 30;         % Number of Neighbors
     saveData  = true;      % Whether or not to save the data once computed
     
     Data = csvread(FileName);
@@ -38,7 +38,7 @@ function SpectrallyCluster(FileName)
 
     % now for the clustering
     fprintf('Creating Similarity Graph...\n');
-    SimGraph = sv_SimGraph_NearestNeighbors(Data, Neighbors, 1);
+    SimGraph = sv_SimGraph_NearestNeighbors(Data, Neighbors, 1)
     %    SimGraph2 = SimGraph_NearestNeighbors(Data, Neighbors, 1);
     
     % if find(SimGraph ~= SimGraph2)

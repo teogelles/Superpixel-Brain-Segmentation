@@ -20,7 +20,7 @@ function testKFact(iStart,iEnd,kStart,kEnd)
 
     for i = iStart:iEnd
         %fprintf('Num: %d\n',i);
-        for j = 3:11
+        for j = kStart:kEnd
             tic;
             a = minMin(i,j);
             atime = toc;
@@ -36,13 +36,12 @@ function testKFact(iStart,iEnd,kStart,kEnd)
             
             times = times + [atime btime ctime btime];
             
-            if (i == 504 || i == 336) && (j == 3);
-                fprintf('For %d broken into %d:\n',i,j);
-                disp(a);
-                disp(b);
-                disp(c);
-                disp(d);
-                fprintf('\n');
+            if (i^(1/j) == round(i^(1/j)))
+                printIter(a,b,c,d,i,j)
+            end
+            
+            if (i == 504 || i == 336) && (j == 3)
+                printIter(a,b,c,d,i,j);
             end
             
             %check if algos worked at all
@@ -84,7 +83,16 @@ function testKFact(iStart,iEnd,kStart,kEnd)
     for i = 1:length(scores)
         fprintf('%s : %d, avg time %.10f\n',types{i},scores(i),times(i));
     end
-    
+        
+end
+
+function printIter(a,b,c,d,i,j)
+    fprintf('For %d broken into %d:\n',i,j);
+    disp(a);
+    disp(b);
+    disp(c);
+    disp(d);
+    fprintf('\n');
 end
 
 function k_facts = minMin(n,k)
@@ -215,6 +223,21 @@ function bucks = buckets(n,k)
     if reverse
         facts = sort(facts,'descend');
     end
+
+    % fact_length = length(facts);
+    % for iter = 1:fact_length
+    %     for f = 1:length(facts)
+    %         err = zeros(length(facts),length(bucks));
+    %         for b = 1:length(bucks)
+    %             err(f,b) = abs(ideal - bucks(b)*facts(f));
+    %         end
+    %     end
+    %     [~, linmin] = min(err(:));
+    %     sizerr = size(err);
+    %     [minF minB] = ind2sub(sizerr, linmin);
+    %     bucks(minB) = bucks(minB)*facts(minF);
+    %     facts(minF) = [];        
+    % end
     
     for fact = facts
         err = zeros(size(bucks));
