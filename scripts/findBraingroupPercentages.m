@@ -1,8 +1,13 @@
-function findBraingroupPercentages()
+function findBraingroupPercentages(fileSeparator)
+    
+    if ~exist('fileSeparator','var')
+        fileSeparator = 'small';
+    end
+    
     filebase =  ['/scratch/tgelles1/summer2014/ADNI_features/' ...
                  'CSV_NORM/'];
-    groupfile = strcat(filebase,'small_groups.csv');
-    resultsfile = strcat(filebase,'organized_small_results.csv');
+    groupfile = strcat(filebase,fileSeparator,'_groups.csv');
+    resultsfile = strcat(filebase,'organized_',fileSeparator,'_results.csv');
     
     groups = csvread(groupfile);
     results = csvread(resultsfile);

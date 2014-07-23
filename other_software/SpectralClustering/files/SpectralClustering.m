@@ -1,10 +1,12 @@
-function [C, L, U] = SpectralClustering(W, k, Type)
+function [C, L, U, centers] = SpectralClustering(W, k, Type)
 %SPECTRALCLUSTERING Executes spectral clustering algorithm
 %   Executes the spectral clustering algorithm defined by
 %   Type on the adjacency matrix W and returns the k cluster
 %   indicator vectors as columns in C.
 %   If L and U are also called, the (normalized) Laplacian and
-%   eigenvectors will also be returned.
+%   eigenvectors will also be returned. If centers is also called,
+%   it will output the centers of each of the clusters to determine
+%   the position of later data 
 %
 %   'W' - Adjacency matrix, needs to be square
 %   'k' - Number of clusters to look for
@@ -22,16 +24,20 @@ function [C, L, U] = SpectralClustering(W, k, Type)
 %   Year  : 2011/2012
 %   Bachelor Thesis
 
+global debug
+dState = debug;
+debug = false;
+
 % calculate degree matrix
-    degs = sum(W, 2);
-    D    = sparse(1:size(W, 1), 1:size(W, 2), degs);
+degs = sum(W, 2);
+D    = sparse(1:size(W, 1), 1:size(W, 2), degs);
 
-    % compute unnormalized Laplacian
-    L = D - W;
+% compute unnormalized Laplacian
+L = D - W;
 
-    % compute normalized Laplacian if needed
-    switch Type
-      case 2
+% compute normalized Laplacian if needed
+switch Type
+    case 2
         % avoid dividing by zero
         degs(degs == 0) = eps;
         % calculate inverse of D
@@ -39,7 +45,7 @@ function [C, L, U] = SpectralClustering(W, k, Type)
         
         % calculate normalized Laplacian
         L = D * L;
-      case 3
+    case 3
         % avoid dividing by zero
         degs(degs == 0) = eps;
         % calculate D^(-1/2)
@@ -47,27 +53,34 @@ function [C, L, U] = SpectralClustering(W, k, Type)
         
         % calculate normalized Laplacian
         L = D * L * D;
-    end
+end
 
-    % compute the eigenvectors corresponding to the k smallest
-    % eigenvalues
-    diff   = eps;
-    [U, V] = eigs(L, k, diff);
+% compute the eigenvectors corresponding to the k smallest
+% eigenvalues
+diff   = eps;
+[U, ~] = eigs(L, k, diff);
+ddisp(U)
+figure
+plot(eigs(L, 20, diff),'x');
 
+% in case of the Jordan-Weiss algorithm, we need to normalize
+% the eigenvectors row-wise
+if Type == 3
+    U = bsxfun(@rdivide, U, sqrt(sum(U.^2, 2)));
+end
 
-    % in case of the Jordan-Weiss algorithm, we need to normalize
-    % the eigenvectors row-wise
-    if Type == 3
-        U = bsxfun(@rdivide, U, sqrt(sum(U.^2, 2)));
-    end
+% now use the k-means algorithm to cluster U row-wise
+% C will be a n-by-1 matrix containing the cluster number for
+% each data point
+[C centers] = kmeans(U, k, 'start', 'cluster', ...
+                 'EmptyAction', 'singleton');
+       
+ddisp(C)
+% now convert C to a n-by-k matrix containing the k indicator
+% vectors as columns
+C = sparse(1:size(D, 1), C, 1);
 
-    % now use the k-means algorithm to cluster U row-wise
-    % C will be a n-by-1 matrix containing the cluster number for
-    % each data point
-    C = kmeans(U, k, 'start', 'cluster', ...
-               'EmptyAction', 'singleton');
+ddisp(C)
 
-    % now convert C to a n-by-k matrix containing the k indicator
-    % vectors as columns
-    C = sparse(1:size(D, 1), C, 1);
+debug = dState;
 end
