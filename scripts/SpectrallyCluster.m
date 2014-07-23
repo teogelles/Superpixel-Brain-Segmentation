@@ -5,7 +5,7 @@ function SpectrallyCluster(FileName)
 
     global debug;
     dState = debug;
-    debug = false; % Change this line to {dis,en}able debug statements
+    debug = true; % Change this line to {dis,en}able debug statements
     % relates to any ddisp and dprintf statements
     
     if ~exist('FileName','var')
@@ -18,9 +18,9 @@ function SpectrallyCluster(FileName)
                            'ADNI_features/CSV_NORM/'], FileName);
     end
 
-    k         = 8;          % Number of Clusters
+    k         = 3;          % Number of Clusters
     Neighbors = 10;         % Number of Neighbors
-    saveData  = false;      % Whether or not to save the data once computed
+    saveData  = true;      % Whether or not to save the data once computed
     
     Data = csvread(FileName);
     [m n d] = size(Data);
@@ -31,13 +31,19 @@ function SpectrallyCluster(FileName)
 
     if isequal(saveData, 1)
         [savePath, saveFile, ~] = fileparts(FileName);
+        savePath = strcat(savePath,'/');
         
-        csvwrite(strcat(savePath,'/',saveFile,'_normed.nld'), Data);
+        csvwrite(strcat(savePath,saveFile,'_normed.nld'), Data);
     end
 
     % now for the clustering
     fprintf('Creating Similarity Graph...\n');
-    SimGraph = SimGraph_NearestNeighbors(Data, Neighbors, 1);
+    SimGraph = sv_SimGraph_NearestNeighbors(Data, Neighbors, 1);
+    %    SimGraph2 = SimGraph_NearestNeighbors(Data, Neighbors, 1);
+    
+    % if find(SimGraph ~= SimGraph2)
+    %     ddisp('We gots ourselves some nondeterministic simgraphs');
+    % end
     
     try
         comps = graphconncomp(SimGraph, 'Directed', false);
@@ -45,28 +51,30 @@ function SpectrallyCluster(FileName)
     end
 
     if saveData
-        save(strcat(savePath,'/',saveFile,'_simgraph.mat'), SimGraph);
+        save(strcat(savePath,saveFile,'_simgraph.mat'), 'SimGraph');
     end
     
     fprintf('Clustering Data...\n');
-    [C, ~, ~, centers] = SpectralClustering(SimGraph, k, 2);
+    C = SpectralClustering(SimGraph, k, 2);
+    %C2 = SpectralClustering(SimGraph, k, 1+1);
     
-    ddisp('this is C')
-    ddisp(C);
-    ddisp('C is over')
+    % if any(find(C ~= C2))
+    %     ddisp('We gots ourselves some nondeterministic clusters by C');
+    % end
     
     % convert and restore full size
     D = convertClusterVector(C);
+    %D2 = convertClusterVector(C2);
     
-    if debug; pause; end
-    ddisp(D)
-    ddisp(size(D))
+    % if any(find(D ~= D2))
+    %     ddisp('We gots ourselves some nondeterministic clusters by D');
+    % end
 
     if saveData
         results = zeros(size(Data',1),size(Data',2) + 1);
         results(:,1) = D;
         results(:,2:end) = Data';
-        csvwrite(strcat(savepath,'/',saveFile, ...
+        csvwrite(strcat(savePath,saveFile, ...
                         '_clustered.csv'),results);
         clear results
     end

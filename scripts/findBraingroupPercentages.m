@@ -7,7 +7,7 @@ function findBraingroupPercentages(fileSeparator)
     filebase =  ['/scratch/tgelles1/summer2014/ADNI_features/' ...
                  'CSV_NORM/'];
     groupfile = strcat(filebase,fileSeparator,'_groups.csv');
-    resultsfile = strcat(filebase,'organized_',fileSeparator,'_results.csv');
+    resultsfile = strcat(filebase,'organized_',fileSeparator,'_clustered.csv');
     
     groups = csvread(groupfile);
     results = csvread(resultsfile);
@@ -44,9 +44,9 @@ function findBraingroupPercentages(fileSeparator)
     clustersInCN = clustersInCN/totalCNclusters;
     
     fprintf('Percentage clusters of each group in AD:\n');
-    disp(clustersInAD);
+    disp([(1:numClusters)' clustersInAD]);
     fprintf('Percentage clusters of each group in MCI:\n');
-    disp(clustersInMCI);
+    disp([(1:numClusters)' clustersInMCI]);
     fprintf('Percentage clusters of each group in CN:\n');
-    disp(clustersInCN);
+    disp([(1:numClusters)' clustersInCN]);
 end

@@ -16,22 +16,27 @@
 
 function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
                                                  shapeParam, numIters)
-% SLIC_2D - Get a superpixelated image
-%
-% @param imageMat - The image to be superpixelated as a matrix
-% @param numSuperPixels - The number of superpixels to use (approximate)
-% @param shapeParam - Weight used to change the importance of
-% Euclidean distance in the calculateDistance function (which uses
-% both Euclidean distance and a color metric)
-% @param numIters - The number of iterations to run the SLIC loop
-%
-% @return lables - The labels for the superpixels of imageMat as a matrix
-% @return borders - The boders for the superpixelated image overlayed on
-% the original image
-% @return centerInfo - Information on every superPixel including
-% its average x,y, and z coordinates as well as the number of
-% pixels that are members 
+    % SLIC_2D - Get a superpixelated image
+    %
+    % @param imageMat - The image to be superpixelated as a matrix
+    % @param numSuperPixels - The number of superpixels to use (approximate)
+    % @param shapeParam - Weight used to change the importance of
+    % Euclidean distance in the calculateDistance function (which uses
+    % both Euclidean distance and a color metric)
+    % @param numIters - The number of iterations to run the SLIC loop
+    %
+    % @return lables - The labels for the superpixels of imageMat as a matrix
+    % @return borders - The boders for the superpixelated image overlayed on
+    % the original image
+    % @return centerInfo - Information on every superPixel including
+    % its average x,y, and z coordinates as well as the number of
+    % pixels that are members 
     
+    imageMat = double(imageMat);
+    numSuperPixels = double(numSuperPixels);
+    shapeParam = double(shapeParam);
+    numIters = double(numIters);
+
     if ~(shapeParam) || (shapeParam < 0)
         shapeParam = 20;
         fprintf('Setting shapeParam to default of 20');
@@ -84,17 +89,16 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
             %     printCount = printCount + 1;
             % end
             
-            % neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
-            %                                        centers(c,
-            %                                        2));
+            neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
+                                                   centers(c,2));
             
-            neb = [1, imageMatSize(1), 1, imageMatSize(2)];
+            % neb = [1, imageMatSize(1), 1, imageMatSize(2)];
             
             
             for i = neb(1):neb(2)
                 for j = neb(3):neb(4)
-            
-                 
+                    
+                    
                     if (printCount == onePercent)
                         fprintf('.');
                         printCount = 1;
@@ -157,6 +161,8 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
     end
 
     fprintf('\n');
+    
+    surface(labels)
     
     borders = getBorders(imageMat, labels, 0);
     
@@ -414,15 +420,14 @@ function dist = calculateDistance(mat,cent,neb,m,s, normConst)
 % found in mat)
 % @param m - the shape parameter we send in, generally in [1,40]
 % @param s - the step size
-    
 
     dsq = (cent(1)-neb(1))^2 + (cent(2)-neb(2))^2;
     % Square of Euclidean distance
-        
+    
     dcq = (cent(3)-mat(neb(1),neb(2)))^2;
     % Square of color distance
     
-    distq = double(dcq + (dsq/(s^2))*(m^2));
+    distq = dcq/(normConst^2) + (dsq/(s^2))*(m^2);
     
     dist = sqrt(distq);
     % Overall distance
@@ -484,7 +489,7 @@ function borders = getBorders(im,labels,fillSetter)
     fprintf('Getting SLIC Border Overlay');
     for i = 2:(size(labels, 1)-1)
         for j = 2:(size(labels, 2)-1)
-                
+            
             iterCounter = iterCounter + 1;
             if (iterCounter == iter10Percent)
                 fprintf('.')
