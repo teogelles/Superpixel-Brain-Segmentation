@@ -1,0 +1,19 @@
+Universe = vanilla
+Executable = /acmi/summer2014/tgelles1/brainseg2014/scripts/condor/bashSLICshapeParam.sh
+InitialDir = /acmi/summer2014/tgelles1/brainseg2014/scripts/condor/
+Notification = Never
+getenv = True
+<<<<<<< HEAD
+Log = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).log
+Error = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).err
+Output = /acmi/summer2014/agilchr1/condorOut/SLIC_shapeParam/inClass$(Process).out
+requirements = (SlotID == 3) && (Memory > 5000)
+=======
+Log = /acmi/summer2014/tgelles1/condorOut/SLIC_shapeParam/inClass$(Process).log
+Error = /acmi/summer2014/tgelles1/condorOut/SLIC_shapeParam/inClass$(Process).err
+Output = /acmi/summer2014/tgelles1/condorOut/SLIC_shapeParam/inClass$(Process).out
+requirements = (Memory > 5000)
+>>>>>>> 08d03ea63b57820d148bcf48b770444709c1a63c
+
+Arguments = $(Process)
+queue 20

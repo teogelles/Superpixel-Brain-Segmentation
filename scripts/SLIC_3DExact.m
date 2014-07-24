@@ -19,7 +19,6 @@ function [labels, borders, centerInfo] = SLIC_3DExact(imageMat,shapeParam, ...
     % SLIC_3D - Get a supervoxelated image
     %
     % @param imageMat - The image to be supervoxelated as a matrix
-    % @param numSuperVoxels - The number of supervoxels to use (approximate)
     % @param shapeParam - Weight used to change the importance of
     % Euclidean distance in the calculateDistance function (which uses
     % both Euclidean distance and a color metric)
