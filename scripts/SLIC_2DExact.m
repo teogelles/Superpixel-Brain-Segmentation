@@ -14,7 +14,7 @@
 % Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
-function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperPixels, ...
+function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, ...
                                                  shapeParam, numIters)
 % SLIC_2D - Get a superpixelated image
 %
@@ -36,21 +36,15 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperPixels, 
         shapeParam = 20;
         fprintf('Setting shapeParam to default of 20');
     end
-    if (numSuperPixels <= 0)
-        numSuperPixels = 200;
-        fprintf('Setting numSuperPixels to defualt of 200');
-    end
-    
+
     imageMat = double(imageMat);
     
     numPixels = size(imageMat,1)*size(imageMat,2);
 
-    step = round((numPixels/numSuperPixels)^(1/2));
-    
     % Initialize superpixel centers and adjust to neighbor point of
     % lowest gradient
-    centers = getSeeds(imageMat,step);
-    centers = adjustSeeds(imageMat, centers);
+    [centers steps] = getSeeds(imageMat);
+    %centers = adjustSeeds(imageMat, centers);
     
     fprintf('Number of Centers Used: %d\n', size(centers, 1));
     
@@ -65,6 +59,7 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperPixels, 
 
     normConst = max(imageMat(:));
     
+    maxStep = max(steps);
     
     fprintf('Superpixelating Image');
 
@@ -84,8 +79,7 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperPixels, 
                 printCount = printCount + 1;
             end
             
-            neb = getNeighborhoodEnds(imageMatSize,step,centers(c,1), ...
-                                                   centers(c,2));
+            neb = getNeighborhoodEnds(imageMatSize,steps,centers(c,:));
             
             for i = neb(1):neb(2)
                 for j = neb(3):neb(4)
@@ -93,7 +87,7 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperPixels, 
                     curVox = [i j];
                     D = calculateDistance(imageMat,centers(c,:), ...
                                           curVox,shapeParam, ...
-                                          step, normConst);
+                                          maxStep, normConst);
                     
 
                     if ((D < distances(i,j)) || (labels(i,j) == c))
@@ -142,14 +136,6 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperPixels, 
         end
         
         centers = newCenters;
-        
-        % fprintf('\n');
-        % borders = getBorders(imageMat, labels, 0);
-        % fprintf('\n');
-        % filename = strcat('./temp/image', num2str(iterations), ...
-        %                   '.png');
-        % disp(filename);
-        % imwrite(uint8(borders), filename);
     end
 
     fprintf('\n');
@@ -162,57 +148,36 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperPixels, 
     centerInfo(:,size(centers,2) + 1) = centerTracker(:,end);
 end
 
-function seeds = getSeeds(imageMat, step)
-% getSeeds takes the original image and the step size and returns a
-% matrix of all the seed locations for starting the superpixel algo
-% @param imageMat = matrix of original 3D image
-% @param step = step around each superpixel that we want to compute
-% our distances, this also encodes roughly our number of superpixels
-%
-% @return seeds = the initial centers spread in a grid across the
-% image matrix. Note that this will be approximately equal to the
-% requested number of superpixels, altered based upon the image dimensions
-    
-    numSeeds = 0;
-    n = 1;
+function [seeds steps] = getSeeds(imageMat)
 
-    % number of superpixels in each direction
-    xstrips = round(size(imageMat,1)/step);
-    ystrips = round(size(imageMat,2)/step);
-    
-    % check that we don't have too many, if so adjust
-    xerr = size(imageMat,1) - step*xstrips;
-    if (xerr < 0)
-        xstrips = xstrips - 1;
-        xerr = size(imageMat,1) - step*xstrips;
+    xDim = size(imageMat, 1);
+    yDim = size(imageMat, 2);
+        
+    if (xDim < yDim)
+        numSeeds = [21 24];
+    else
+        numSeeds = [24 21];
     end
     
-    yerr = size(imageMat,2) - step*ystrips;
-    if (yerr < 0)
-        ystrips = ystrips - 1;
-        yerr = size(imageMat,2) - step*ystrips;
-    end
+    steps = [xDim/numSeeds(1) yDim/numSeeds(2)];
     
-    % find the number of pixels left off in each strip
-    xerrperstrip = xerr/xstrips;
-    yerrperstrip = yerr/ystrips;
+    seeds = zeros(numSeeds(1)*numSeeds(2), 3);
     
-    % the initial offset in each direction
-    xoff = int32(step/2);
-    yoff = int32(step/2);
-    
-    numSeeds = xstrips*ystrips;
-    seeds = zeros(numSeeds,3);
-    
-    % place the seeds
-    for y = 0:(ystrips-1)
-        ye = y*yerrperstrip;
-        for x = 0:(xstrips-1)
-            xe = x*xerrperstrip;
+    index = 1;
+    for i=1:numSeeds(1)
+        for j=1:numSeeds(2)
             
-            seeds(n,1:2) = [(x*step+xoff+xe) (y*step+yoff+ye)];
-            seeds(n,3) = imageMat(seeds(n,1),seeds(n,2));
-            n = n+1;
+            coords = round([(i-.5)*steps(1) (j-.5)*steps(2)]);
+            
+            neb = getNeighborhoodEnds([xDim yDim], [1 1], coords);
+            
+            neb = imageMat(neb(1):neb(2), neb(3):neb(4));
+            
+            avg = mean(neb(:));
+            
+            seeds(index, :) = [(i-.5)*steps(1) (j-.5)*steps(2) avg];
+            
+            index = index + 1;
         end
     end
 end
@@ -426,7 +391,7 @@ end
 
 
 
-function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, i, j)
+function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, coords)
 % Function gets the neighborhood ends for a regions around the
 % center of size radius
 % @param imageMatSize - size of the image matrix
@@ -436,8 +401,11 @@ function neighborhoodEnds = getNeighborhoodEnds(imageMatSize, radius, i, j)
 % @return neighborhoodEnds - matrix of starts and ends of each
 % direction of neighborhood
     
-    neighborhoodEnds = [floor(i-radius),ceil(i+radius),floor(j-radius), ...
-                        ceil(j + radius)];
+    i = coords(1);
+    j = coords(2);
+    
+    neighborhoodEnds = [floor(i-radius(1)),ceil(i+radius(1)),floor(j-radius(2)), ...
+                        ceil(j + radius(2))];
     
     % edge cases
     if neighborhoodEnds(1) < 1

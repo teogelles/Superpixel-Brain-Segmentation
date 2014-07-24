@@ -45,6 +45,9 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
     
     numSuperVoxels = 504;
     
+    fprintf('Type: %s\n', imageType);
+    fprintf('Num: %d\n', imageNum);
+    
     %For the entropy runs, we don't want the images saved
     saveImages = true;
     

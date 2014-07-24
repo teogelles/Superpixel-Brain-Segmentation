@@ -31,11 +31,6 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
     % @return centerInfo - Information on every superPixel including
     % its average x,y, and z coordinates as well as the number of
     % pixels that are members 
-    
-    imageMat = double(imageMat);
-    numSuperPixels = double(numSuperPixels);
-    shapeParam = double(shapeParam);
-    numIters = double(numIters);
 
     if ~(shapeParam) || (shapeParam < 0)
         shapeParam = 20;
@@ -154,14 +149,6 @@ function [labels, borders, centerInfo] = SLIC_2D(imageMat, numSuperPixels, ...
         end
         
         centers = newCenters;
-        
-        % fprintf('\n');
-        % borders = getBorders(imageMat, labels, 0);
-        % fprintf('\n');
-        % filename = strcat('./temp/image', num2str(iterations), ...
-        %                   '.png');
-        % disp(filename);
-        % imwrite(uint8(borders), filename);
     end
 
     fprintf('\n');
