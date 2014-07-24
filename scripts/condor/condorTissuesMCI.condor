@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor/bashTissuesMCI.sh
+InitialDir = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor
+Notification = Never
+getenv = True
+Log = /sonigroup/summer2014/agilchr1/condorOut/TissuesMCI/patient$(Process).log
+Error = /sonigroup/summer2014/agilchr1/condorOut/TissuesMCI/patient$(Process).err
+Output = /sonigroup/summer2014/agilchr1/condorOut/TissuesMCI/patient$(Process).out
+requirements = (Memory > 15000) && (SlotID == 2)
+
+Arguments = $(Process)
+queue 203

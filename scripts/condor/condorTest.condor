@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condorTestBash.sh
+InitialDir = /sonigroup/summer2014/agilchr1/brainseg2014/scripts
+Notification = Never
+getenv = True
+Log = /sonigroup/summer2014/agilchr1/condorOut/inClass$(Process).log
+Error = /sonigroup/summer2014/agilchr1/condorOut/inClass$(Process).err
+Output = /sonigroup/summer2014/agilchr1/condorOut/inClass$(Process).out
+requirements = (SlotID == 3) && (Memory > 8000)
+
+Arguments = $(Process)
+queue 18

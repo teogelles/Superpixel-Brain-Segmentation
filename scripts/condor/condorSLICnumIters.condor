@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor/bashSLICnumIters.sh
+InitialDir = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor/
+Notification = Never
+getenv = True
+Log = /sonigroup/summer2014/agilchr1/condorOut/SLIC_numIters/inClass$(Process).log
+Error = /sonigroup/summer2014/agilchr1/condorOut/SLIC_numIters/inClass$(Process).err
+Output = /sonigroup/summer2014/agilchr1/condorOut/SLIC_numIters/inClass$(Process).out
+requirements = (Memory > 1500)
+
+Arguments = $(Process)
+queue 27
