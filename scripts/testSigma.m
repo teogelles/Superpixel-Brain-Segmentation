@@ -2,10 +2,10 @@
 
 function testSigma()
     
-    filename = 'organized_small.csv';
-    fileID = 'small';
+    filename = 'organized_med.csv';
+    fileID = 'med';
     
-    maxGap = Inf;
+    maxGap = 0;
     bestSig = Inf;
     
     for sig = 0:.1:3
@@ -14,9 +14,11 @@ function testSigma()
         percents = findBraingroupPercentages(fileID);
         % assume percents{1} has all clusters
         for i = 1:length(percents{1})
-            if (percents{1}(i) <= percents{2}(i)) && ...
-                    (percents{2}(i) <= percents{3}(i))
-                gap = percents{1}(i) - percents{2}(i);
+            if ((percents{1}(i) <= percents{2}(i)) && (percents{2}(i) ...
+                                                       <= percents{3}(i))) ...
+                    || ((percents{1}(i) >= percents{2}(i)) && ...
+                        (percents{2}(i) >= percents{3}(i)))
+                gap = abs(percents{1}(i) - percents{2}(i));
                 if gap > maxGap
                     fprintf('New Best\n');
                     maxGap = gap;
@@ -28,7 +30,7 @@ function testSigma()
     end
     
     if (bestSig ~= Inf)
-        fprintf('Best sig: %2,1f with gap of %f\n',bestSig, maxGap);
+        fprintf('Best sig: %2.1f with gap of %f\n',bestSig, maxGap);
     else
         fprintf('No gap found\n');
     end

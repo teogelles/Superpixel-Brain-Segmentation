@@ -1,11 +1,11 @@
 % We've changed this file to screw around with the segmentation,
 % and now, it's our file! Muah ha ha ha ha!
 
-function SpectrallyCluster(FileName)
+function SpectrallyCluster(FileName,sigma)
 
     global debug;
     dState = debug;
-    debug = true; % Change this line to {dis,en}able debug statements
+    debug = false; % Change this line to {dis,en}able debug statements
     % relates to any ddisp and dprintf statements
     
     if ~exist('FileName','var')
@@ -16,6 +16,10 @@ function SpectrallyCluster(FileName)
     if ~strcmp(FileName(1),'/')
         FileName = strcat(['/scratch/tgelles1/summer2014/' ...
                            'ADNI_features/CSV_NORM/'], FileName);
+    end
+    
+    if ~exist('sigma','var')
+        sigma = 1;
     end
 
     k         = 4;          % Number of Clusters
@@ -28,7 +32,6 @@ function SpectrallyCluster(FileName)
     Data = normalizeData(Data');
     
     
-
     if isequal(saveData, 1)
         [savePath, saveFile, ~] = fileparts(FileName);
         savePath = strcat(savePath,'/');
@@ -38,12 +41,22 @@ function SpectrallyCluster(FileName)
 
     % now for the clustering
     fprintf('Creating Similarity Graph...\n');
-    SimGraph = sv_SimGraph_NearestNeighbors(Data, Neighbors, 1)
-    %    SimGraph2 = SimGraph_NearestNeighbors(Data, Neighbors, 1);
-    
-    % if find(SimGraph ~= SimGraph2)
-    %     ddisp('We gots ourselves some nondeterministic simgraphs');
-    % end
+    % Adding code to 
+    SimGraph = sv_SimGraph_NearestNeighbors(Data, Neighbors, 1, sigma);
+     
+    % Tests to see if the simgraph looks good
+    % figure
+    if debug
+        hist(SimGraph(:));
+        title('Original Simgraph histogram')
+        
+        nonZind = find(SimGraph);
+        simVals = SimGraph(nonZind);
+        
+        figure
+        hist(simVals);
+        title('Histogram of nonzero SimGraph values')
+    end 
     
     try
         comps = graphconncomp(SimGraph, 'Directed', false);

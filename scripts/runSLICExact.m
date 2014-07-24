@@ -72,7 +72,10 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
     % end
          
     % base directory
-    saveDir = '/scratch/tgelles1/summer2014/slicExact/';
+    saveDir = '/scratch/tgelles1/summer2014/slicExactTest/';
+    if ~exist(saveDir,'dir')
+        mkdir(saveDir);
+    end
     
     % file addressing specific to each of the different type of
     % file we may choose to run

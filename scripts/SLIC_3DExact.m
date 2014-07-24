@@ -141,7 +141,7 @@ function [labels, borders, centerInfo] = SLIC_3DExact(imageMat,shapeParam, ...
                                                               5);
             newCenters(i,4) = centerTracker(i,4)/centerTracker(i, 5);
         end
-        
+                
         centers = newCenters;
     end
 
