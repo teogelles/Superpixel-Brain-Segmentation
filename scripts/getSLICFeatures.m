@@ -56,6 +56,10 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
     [avgSpreadX avgSpreadY avgSpreadZ spreadX spreadY spreadZ] = ...
         getSpreads(labels, centerInfo);
     
+    %get the neighbors
+    numNeb = 4;
+    neighbors = getNeighbors(centerInfo,numNeb);
+    
     if (~isnan(tissues))
         tissueInfo = getTissueInfo(labels, tissues, centerInfo);
         
@@ -127,13 +131,21 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
                     id, i, surfaceArea(i));
             fprintf(outFile,'entropypersv(patientid%d, sv%d, %f).\n', ...
                     id, i, entropy(i));
-            fprintf(outCSV,'%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n', ...
+            fprintf(outCSV,'%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f', ...
                     centerInfo(i,1),centerInfo(i,2),centerInfo(i,3), ...
                     spreadX(i),spreadY(i),spreadZ(i), ...
                     tissueInfo(i,3)/centerInfo(i,5), ...
                     tissueInfo(i,4)/centerInfo(i,5), ...
                     tissueInfo(i,2)/centerInfo(i,5),centerInfo(i,4), ...
-                    centerInfo(i,5), varIntensitysv(i),surfaceArea(i),entropy(i));
+                    centerInfo(i,5), varIntensitysv(i), ...
+                    surfaceArea(i),entropy(i));
+            for neb = 1:numNeb
+                printStr = strcat('neighbor', num2str(neb), ...
+                                  '(patientid%d, sv%d, %f).\n');
+                fprintf(outFile,printStr, id, i, neighbors);
+                fprintf(outCSV,',%f',neighbors(i));
+            end
+            fprintf(outCSV,'\n');
         end
     end
     
@@ -344,4 +356,19 @@ function [avgSpreadX avgSpreadY avgSpreadZ spreadX spreadY spreadZ] = getSpreads
     avgSpreadX = mean(spreads(:, 1));
     avgSpreadY = mean(spreads(:, 2));
     avgSpreadZ = mean(spreads(:, 3));
+end
+
+function neighbors = getNeighbors(centerInfo,numNeb)
+   
+    neighbors = zeros(size(centerIngo,1),numNeb);
+    centers = centerInfo(1:3)';
+    numSV = size(centerInfo,1);
+    
+    for i = 1:numSV
+        dist = distEuclidean(repmat(centers, 1, numSV),centers);
+        
+        [s, O] = sort(dist, 'ascend');
+        
+        neighbors(i,:) = O(1:nunNeb);
+    end
 end
