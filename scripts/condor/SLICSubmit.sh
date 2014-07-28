@@ -1,0 +1,3 @@
+condor_submit condorAD.condor
+condor_submit condorCN.condor
+condor_submit condorMCI.condor

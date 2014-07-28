@@ -1,4 +1,13 @@
 Universe = vanilla
+<<<<<<< HEAD
+Executable = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor/bashSLICnumSuperVoxels.sh
+InitialDir = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor/
+Notification = Never
+getenv = True
+Log = /sonigroup/summer2014/agilchr1/condorOut/SLIC_numSuperVoxels/inClass$(Process).log
+Error = /sonigroup/summer2014/agilchr1/condorOut/SLIC_numSuperVoxels/inClass$(Process).err
+Output = /sonigroup/summer2014/agilchr1/condorOut/SLIC_numSuperVoxels/inClass$(Process).out
+=======
 Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor/bashSLICnumSuperVoxels.sh
 InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor/
 Notification = Never
@@ -6,6 +15,7 @@ getenv = True
 Log = /acmi/summer2014/agilchr1/condorOut/SLIC_numSuperVoxels/inClass$(Process).log
 Error = /acmi/summer2014/agilchr1/condorOut/SLIC_numSuperVoxels/inClass$(Process).err
 Output = /acmi/summer2014/agilchr1/condorOut/SLIC_numSuperVoxels/inClass$(Process).out
+>>>>>>> 7a57d238b26608723433b6d424c4617f975d284e
 requirements = (SlotID == 3) && (Memory > 5000)
 
 Arguments = $(Process)

@@ -1,6 +1,6 @@
 Universe = vanilla
-Executable = /sonigroup/summer2014/tgelles1/brainseg2014/scripts/condor/bashCN.sh
-InitialDir = /sonigroup/summer2014/tgelles1/brainseg2014/scripts/condor
+Executable = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor/bashCN.sh
+InitialDir = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor
 Notification = Never
 getenv = True
 Log = /sonigroup/summer2014/agilchr1/condorOut/CN/patient$(Process).log

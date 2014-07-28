@@ -49,7 +49,7 @@ function slicFeatures = condor_runSLICExact(imageType, imageNum, ...
         imageNum = 1;
     end
     
-    numSuperVoxels = 120;
+    numSuperVoxels = 210;
     
     fprintf('Type: %s\n', imageType);
     fprintf('Num: %d\n', imageNum);
@@ -58,7 +58,7 @@ function slicFeatures = condor_runSLICExact(imageType, imageNum, ...
     saveImages = true;
          
     % base directory
-    saveDir = '/scratch/tgelles1/summer2014/slicExact120/';
+    saveDir = '/scratch/tgelles1/summer2014/slicExact210/';
     
     % file addressing specific to each of the different type of
     % file we may choose to run
@@ -140,7 +140,7 @@ function slicFeatures = condor_runSLICExact(imageType, imageNum, ...
         id = imageNum+1000;
     end
     
-    featureFilename = strcat('/scratch/tgelles1/summer2014/slicExact120/features/',...
+    featureFilename = strcat('/scratch/tgelles1/summer2014/slicExact210/features/',...
                              imageType,sprintf('%03d',imageNum),'.txt');
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...

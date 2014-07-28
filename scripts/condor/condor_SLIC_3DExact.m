@@ -165,12 +165,13 @@ function [seeds steps] = getSeeds(imageMat)
     [~, m] = min([xDim, yDim, zDim]);
     [~, M] = max([xDim, yDim, zDim]);
     
+    % change these lines to adjust the number of centers
     if (M == m)
-        numSeeds = [4 5 6];
+        numSeeds = [5 6 7];
     else
-        numSeeds(m) = 4;
-        numSeeds(M) = 6;
-        numSeeds(find(~numSeeds)) = 5;
+        numSeeds(m) = 5;
+        numSeeds(M) = 7;
+        numSeeds(find(~numSeeds)) = 6;
     end
     
     steps = [xDim/numSeeds(1) yDim/numSeeds(2) zDim/numSeeds(3)];

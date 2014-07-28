@@ -1,4 +1,4 @@
-function findBraingroupPercentages(fileSeparator)
+function percents = findBraingroupPercentages(fileSeparator)
     
     if ~exist('fileSeparator','var')
         fileSeparator = 'small';
@@ -49,4 +49,9 @@ function findBraingroupPercentages(fileSeparator)
     disp([(1:numClusters)' clustersInMCI]);
     fprintf('Percentage clusters of each group in CN:\n');
     disp([(1:numClusters)' clustersInCN]);
+    
+    percents = cell(3,1);
+    percents{1} = clustersInAD;
+    percents{2} = clustersInMCI;
+    percents{3} = clustersInCN;
 end
