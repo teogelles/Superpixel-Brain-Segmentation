@@ -1,17 +1,17 @@
-# python script which concatenated in a certain order our test file
+# python script which concatenates our test files  in a certain order
 import os.path
 
 def main():
-    filebase = '/scratch/tgelles1/summer2014/ADNI_features/CSV_NORM/'
-    groupfile = filebase + 'aNewHope_groups.csv'
-    finalfile = filebase + 'organized_aNewHope.csv'
+    filebase = '/scratch/tgelles1/summer2014/slicExact120/features/CSV_NORM/'
+    groupfile = filebase + 'med_groups.csv'
+    finalfile = filebase + 'organized_med.csv'
     writer = open(finalfile,'w+')
     group = open(groupfile,'w+')
     diseases = ["AD","MCI","CN"]
     
     for disease_i in range(3):
         diseaseType = diseases[disease_i]
-        for num in range(20,71):
+        for num in range(1,31):
             myfilename = diseaseType + str(num).zfill(3) + '.csv'
             myfilename = filebase + myfilename
             if  not os.path.exists(myfilename):

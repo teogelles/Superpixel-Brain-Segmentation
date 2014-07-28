@@ -4,7 +4,7 @@ function percents = findBraingroupPercentages(fileSeparator)
         fileSeparator = 'small';
     end
     
-    filebase =  ['/scratch/tgelles1/summer2014/ADNI_features/' ...
+    filebase =  ['/scratch/tgelles1/summer2014/slicExact120/features/' ...
                  'CSV_NORM/'];
     groupfile = strcat(filebase,fileSeparator,'_groups.csv');
     resultsfile = strcat(filebase,'organized_',fileSeparator,'_clustered.csv');
