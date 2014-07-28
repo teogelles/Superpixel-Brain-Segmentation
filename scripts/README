@@ -1,50 +1,41 @@
 Swarthmore Summer 2014 CS Research
 Prof. Ameet Soni
 Students: Teo Gelles & Andrew Gilchrist-Scott
-Last Updated: 06/25/2014
+Last Updated: 07/28/2014
 
 
-Directory: /acmi/summer2014/tgelles1/brainseg2014/scripts
+Directory: /sonigroup/summer2014/tgelles1/brainseg2014/scripts
 
 This directory contains the main code and scripts used for our brain
-imaging resource that we wrote ourselves.  The UGM package, which our
-code relies on but which we did not write, is in a separate directory.
+imaging resource that we wrote ourselves as subdirectories.  Ready-made
+packages that we obtained from other sources are in ../other_software
 
 
 Directory Listing:
 
-./CRF_fastTune.m - Code for running tissue segmentation using CRFs.
-		   The purpose of this file is to find the optimal
-		   number of iterations to run CRF_test with.  Largely
-		   a prettified copy of Chris Magnano's work from 2013
+./CRF - Code for running tissue segmentation, using Chris Magnano's work
+      	from 2013
 
-./CRF_test.m - Code for running tissue segmentation using CRFs.  This
-	       is the main learning scripts, where the CRF is actually
-	       trained to recognize tissue types.  Largely a
-	       prettified copy of Chris Magnano's work from 2013
+./SLIC - Our implementation of the SLIC superpixelation algorithm for
+       	 use with .nii files.  All superpixel implementations we could
+       	 find either worked solely in pixels, rather than voxels as
+       	 our .nii files come in, or do not run on linux.  This code
+       	 fixes both these problems.
 
-./SLIC_3D.m - Our implementation of the SLIC algorithm for use with
-	      .nii files.  All superpixel implementations we could
-	      find either worked solely in pixels, rather than voxels
-	      as our .nii files come in, or do not run on linux.  This
-	      code fixes both these problems.
+./SVM - Code for predicting AD/MCI/CN diagnosis using the features generated
+      	from the superpixels we created
 
-./compareSLIC.m - A short scripts to just call runSLIC a few times and
-		  see the results.
+./SpectralClustering - Code for using the Spectral Clustering grouping
+		       technique on the features generated from the
+		       superpixels we created
 
-./cropBlack.m - A script to remove the black margins around brain
-	      	images in .nii files.  These black margins interfere
-	      	with the accuracy of our SLIC implementation.
+./condor - Condor files, bash scripts the condor files use, and copies
+	   of scripts that are called by the bash scripts to make sure
+	   we do not edit files that are in-use.
 
-./getSLICFeatures.m - A script to obtain different brain "features" or
-		      statistics of the brain based on SLIC and the
-		      tissue segmentation.
+./debug - Custom debugging code for MATLAB use
 
-./getTissueInfo.m - Code for obtaining information about the
-		    distribution of tissue types throughout the SLIC
-		    supervoxels.
+./legacy - Code from Chris Magnano's work last summer and some code from
+	   this summer that is no longer in use for our pipeline
 
-./runSLIC.m - The main interface we used for running the SLIC
-	      algorithm and getting relevant features.  This scripts
-	      organizes the inputs and usage of the SLIC_3D and
-	      getSLICFeatures programs.
+./scripts - Miscellaneous scripts that we useful for self-contained tasks
