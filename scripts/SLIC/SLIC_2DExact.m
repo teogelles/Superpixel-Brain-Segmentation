@@ -14,7 +14,7 @@
 % Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
-function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, ...
+function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperpixels, ...
                                                  shapeParam, numIters)
 % SLIC_2D - Get a superpixelated image
 %
@@ -41,9 +41,20 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, ...
     
     numPixels = size(imageMat,1)*size(imageMat,2);
 
+    acceptedSVList = zeros(100, 1);
+    for i=1:100
+        acceptedSVList(i) = i*(i+1);
+    end
+    
+    if (~any(acceptedSVList == numSuperVoxels))
+        fprintf(['numSuperVoxels value invalid.  Setting to default ' ...
+                 'of 120']);
+        numSuperVoxels = 110;
+    end
+    
     % Initialize superpixel centers and adjust to neighbor point of
     % lowest gradient
-    [centers steps] = getSeeds(imageMat);
+    [centers steps] = getSeeds(imageMat, numSuperpixels);
     %centers = adjustSeeds(imageMat, centers);
     
     fprintf('Number of Centers Used: %d\n', size(centers, 1));
@@ -148,15 +159,18 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, ...
     centerInfo(:,size(centers,2) + 1) = centerTracker(:,end);
 end
 
-function [seeds steps] = getSeeds(imageMat)
+function [seeds steps] = getSeeds(imageMat, numSuperpixels)
 
+    minVal = floor((numSuperPixels)^(1/2));
+    maxVal = minVal + 1;
+    
     xDim = size(imageMat, 1);
     yDim = size(imageMat, 2);
         
     if (xDim < yDim)
-        numSeeds = [21 24];
+        numSeeds = [minVal maxVal];
     else
-        numSeeds = [24 21];
+        numSeeds = [maxVal minVal];
     end
     
     steps = [xDim/numSeeds(1) yDim/numSeeds(2)];

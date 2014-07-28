@@ -14,7 +14,7 @@
 % Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk
 % Implemented by Andrew Gilchrist-Scott and Teo Gelles
 
-function [labels, borders, centerInfo] = SLIC_3DExact(imageMat,shapeParam, ...
+function [labels, borders, centerInfo] = SLIC_3DExact(imageMat,numSuperVoxels,shapeParam, ...
                                                       numIters)
     % SLIC_3D - Get a supervoxelated image
     %
@@ -38,9 +38,20 @@ function [labels, borders, centerInfo] = SLIC_3DExact(imageMat,shapeParam, ...
     
     numVoxels = size(imageMat,1)*size(imageMat,2)*size(imageMat,3);
     
+    acceptedSVList = zeros(100, 1);
+    for i=1:100
+        acceptedSVList(i) = i*(i+1)*(i+2);
+    end
+    
+    if (~any(acceptedSVList == numSuperVoxels))
+        fprintf(['numSuperVoxels value invalid.  Setting to default ' ...
+                 'of 120']);
+        numSuperVoxels = 120;
+    end
+    
     % Initialize superpixel centers and adjust to neighbor point of
     % lowest gradient
-    [centers steps] = getSeeds(imageMat);
+    [centers steps] = getSeeds(imageMat, numSuperVoxels);
     %centers = adjustSeeds(imageMat, centers);
     
     fprintf('Number of Centers Used: %d\n', size(centers, 1));
@@ -154,7 +165,7 @@ function [labels, borders, centerInfo] = SLIC_3DExact(imageMat,shapeParam, ...
     centerInfo(:,size(centers,2) + 1) = centerTracker(:,end);
 end
 
-function [seeds steps] = getSeeds(imageMat)
+function [seeds steps] = getSeeds(imageMat, numSuperVoxels)
     
     numSeeds = [0, 0, 0];
     
@@ -165,12 +176,16 @@ function [seeds steps] = getSeeds(imageMat)
     [~, m] = min([xDim, yDim, zDim]);
     [~, M] = max([xDim, yDim, zDim]);
     
+    minVal = floor((numSuperVoxels)^(1/3));
+    medVal = minVal + 1;
+    maxVal = minVal + 2;
+    
     if (M == m)
-        numSeeds = [7 8 9];
+        numSeeds = [minVal medVal maxVal];
     else
-        numSeeds(m) = 7;
-        numSeeds(M) = 9;
-        numSeeds(find(~numSeeds)) = 8;
+        numSeeds(m) = minVal;
+        numSeeds(M) = maxVal;
+        numSeeds(find(~numSeeds)) = medVal;
     end
     
     steps = [xDim/numSeeds(1) yDim/numSeeds(2) zDim/numSeeds(3)];
