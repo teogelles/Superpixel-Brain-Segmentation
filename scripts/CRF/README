@@ -1,0 +1,28 @@
+Swarthmore Summer 2014 CS Research
+Prof. Ameet Soni
+Students: Teo Gelles & Andrew Gilchrist-Scott
+Last Updated: 07/28/2014
+
+
+Directory: /sonigroup/summer2014/tgelles1/brainseg2014/scripts/CRF
+
+This directory contains the code for brain tissue segmentation into
+either White Matter, Grey Matter, or Cerebral Spinal Fluid.  This is mostly
+a copy of Chris Magnano's work from summer 2013.
+
+
+Directory Listing:
+
+./CRF_fastTune.m - Code for running tissue segmentation using CRFs.
+		   The purpose of this file is to find the optimal
+		   number of iterations to run CRF_test with.
+
+./CRF_test.m - Code for running tissue segmentation using CRFs.  This
+	       is the main learning scripts, where the CRF is actually
+	       trained to recognize tissue types.  Uses 5-fold cross
+	       validation as a way to create sets for training and for testing.
+
+./CRF_train.m - Similar to CRF_test, except is mean for the sole purpose of
+	      	training a CRF rather than training and testing a CRF.  Thus,
+		large sections of CRF_test have been removed, and 5-fold cross
+		validation is no longer necessary.
