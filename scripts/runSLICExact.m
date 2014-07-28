@@ -50,26 +50,6 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
     
     %For the entropy runs, we don't want the images saved
     saveImages = true;
-    
-    %We have noticed that some images are bad, so this will
-    %continue if we're on such an image
-    % leaveout = ADNIerrors();
-    % exception = MException('ArgumentError:ImageNum',['Bad image ' ...
-    %                     'number']);
-    
-    % if (strcmp(imageType, 'AD'))
-    %     if any(imageNum == leaveout{1})
-    %         throw(exception);
-    %     end
-    % elseif (strcmp(imageType, 'MCI'))
-    %     if any(imageNum == leaveout{2})
-    %         throw(exception)
-    %     end
-    % elseif (strcmp(imageType, 'CN'))
-    %     if any(imageNum == leaveout{3})
-    %         throw(exception)
-    %     end
-    % end
          
     % base directory
     saveDir = '/scratch/tgelles1/summer2014/slicExactTest/';
@@ -104,8 +84,8 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
         
         fprintf('Relevant Files Already Exist, Loading...\n');
         
-        labels = load_nifti(slicAddr, imageNum, 1);
-        X = load_nifti(xAddr, imageNum, 1);
+        labels = load_nifti(slicAddr, imageNum);
+        X = load_nifti(xAddr, imageNum);
         
         centerInfo = load(centerinfoAddr);
         cropOffset = load(cropAddr);
@@ -162,7 +142,6 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
                                       cropOffset,featureFilename, id);
-    
 end
 
 

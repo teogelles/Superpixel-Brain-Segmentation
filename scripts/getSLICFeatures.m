@@ -140,10 +140,9 @@ function featureList = getSLICFeatures(im,labels,tissues, ...
                     centerInfo(i,5), varIntensitysv(i), ...
                     surfaceArea(i),entropy(i));
             for neb = 1:numNeb
-                printStr = strcat('neighbor', num2str(neb), ...
-                                  '(patientid%d, sv%d, %f).\n');
-                fprintf(outFile,printStr, id, i, neighbors);
-                fprintf(outCSV,',%f',neighbors(i));
+                printStr = strcat('neighbors(patientid%d, sv%d, sv%d).\n');
+                fprintf(outFile,printStr, id, i, neighbors(i, neb));
+                fprintf(outCSV,',%f',neighbors(i,neb));
             end
             fprintf(outCSV,'\n');
         end
@@ -360,15 +359,15 @@ end
 
 function neighbors = getNeighbors(centerInfo,numNeb)
    
-    neighbors = zeros(size(centerIngo,1),numNeb);
-    centers = centerInfo(1:3)';
+    neighbors = zeros(size(centerInfo,1),numNeb);
+    centers = centerInfo(:, 1:3)';
     numSV = size(centerInfo,1);
     
     for i = 1:numSV
-        dist = distEuclidean(repmat(centers, 1, numSV),centers);
+        dist = distEuclidean(repmat(centers(:, i), 1, numSV),centers);
         
         [s, O] = sort(dist, 'ascend');
         
-        neighbors(i,:) = O(1:nunNeb);
+        neighbors(i,:) = O(2:numNeb+1);
     end
 end

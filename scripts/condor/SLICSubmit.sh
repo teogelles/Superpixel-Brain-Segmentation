@@ -1,3 +1,3 @@
-condor_submit condorSLICAD.condor
-condor_submit condorSLICCN.condor
-condor_submit condorSLICMCI.condor
+condor_submit condorAD.condor
+condor_submit condorCN.condor
+condor_submit condorMCI.condor
