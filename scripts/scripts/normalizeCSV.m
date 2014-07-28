@@ -8,8 +8,13 @@ function normalizeCSV()
     global debug;
     debug = false;
     
-    filebase = '/scratch/tgelles1/summer2014/ADNI_features/CSV/';
-    savefilebase = '/scratch/tgelles1/summer2014/ADNI_features/CSV_NORM/';
+    filebase = '/scratch/tgelles1/summer2014/slicExact120/features/CSV/';
+    savefilebase = ['/scratch/tgelles1/summer2014/slicExact120/features/' ...
+                    'CSV_NORM/'];
+    
+    if ~exist(savefilebase,'dir')
+        mkdir(savefilebase);
+    end
     
     listing = dir(filebase);
     
@@ -33,6 +38,33 @@ function normalizeCSV()
         csvmat = processSV(csvmat);
         savefile = strcat(savefilebase,file);
         csvwrite(savefile,csvmat);
+    end
+end
+
+function newSV = processSV(superVoxels)
+    
+%    newSV = removeBackgroundSV(superVoxels);
+    newSV = normalizeXYZ(superVoxels);
+end
+
+function newSV = normalizeXYZ(newSV)
+    
+    mins = [min(newSV(:,1)) min(newSV(:,2)) min(newSV(:,3))];
+    maxes = [max(newSV(:,1)) max(newSV(:,2)) max(newSV(:,3))];
+    for xyz = 1:3
+        % normalizing x,y, and z to be from 0 to 1
+        ddisp(newSV(1,xyz));
+        newSV(:,xyz) = (newSV(:,xyz) - mins(xyz))/...
+            (maxes(xyz) - mins(xyz));
+        ddisp(newSV(1,xyz));
+        % changing from 0-1 to 0-100
+        % newSV(:,xyz) = 100*newSV(:,xyz);
+        ddisp(newSV(1,xyz));
+        % normalizing the spreads to be from 0 to 1
+        newSV(:,xyz + 3) = newSV(:,xyz + 3)/(maxes(xyz) - ...
+                                             mins(xyz));
+        % changing spreads to also be 0 - 100
+        % newSV(:,xyz + 3) = 100*newSV(:,xyz+3);
     end
 end
 
@@ -86,31 +118,4 @@ function brainSV = removeBackgroundSV(superVoxels)
         %         size(superVoxels,1));
     end
     
-end
-
-function newSV = processSV(superVoxels)
-    
-    newSV = removeBackgroundSV(superVoxels);
-    newSV = normalizeXYZ(newSV);
-end
-
-function newSV = normalizeXYZ(newSV)
-    
-    mins = [min(newSV(:,1)) min(newSV(:,2)) min(newSV(:,3))];
-    maxes = [max(newSV(:,1)) max(newSV(:,2)) max(newSV(:,3))];
-    for xyz = 1:3
-        % normalizing x,y, and z to be from 0 to 1
-        ddisp(newSV(1,xyz));
-        newSV(:,xyz) = (newSV(:,xyz) - mins(xyz))/...
-            (maxes(xyz) - mins(xyz));
-        ddisp(newSV(1,xyz));
-        % changing from 0-1 to 0-100
-        newSV(:,xyz) = 100*newSV(:,xyz);
-        ddisp(newSV(1,xyz));
-        % normalizing the spreads to be from 0 to 1
-        newSV(:,xyz + 3) = newSV(:,xyz + 3)/(maxes(xyz) - ...
-                                             mins(xyz));
-        % changing spreads to also be 0 - 100
-        newSV(:,xyz + 3) = 100*newSV(:,xyz+3);
-    end
 end

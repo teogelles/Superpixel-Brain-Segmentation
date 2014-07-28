@@ -15,14 +15,14 @@ function SpectrallyCluster(FileName,sigma)
     
     if ~strcmp(FileName(1),'/')
         FileName = strcat(['/scratch/tgelles1/summer2014/' ...
-                           'ADNI_features/CSV_NORM/'], FileName);
+                           'slicExact120/features/CSV_NORM/'], FileName);
     end
     
     if ~exist('sigma','var')
         sigma = 1;
     end
 
-    k         = 4;          % Number of Clusters
+    k         = 40;          % Number of Clusters
     Neighbors = 30;         % Number of Neighbors
     saveData  = true;      % Whether or not to save the data once computed
     

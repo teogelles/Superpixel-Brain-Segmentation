@@ -30,12 +30,12 @@ in the MathWorks Documentation Center.
 
 Files to package for Standalone 
 ================================
--condor_runSLIC 
--run_condor_runSLIC.sh (shell script for temporarily setting environment variables and 
-                        executing the application)
+-condor_runSLICExact 
+-run_condor_runSLICExact.sh (shell script for temporarily setting environment variables 
+                             and executing the application)
    -to run the shell script, type
    
-       ./run_condor_runSLIC.sh <mcr_directory> <argument_list>
+       ./run_condor_runSLICExact.sh <mcr_directory> <argument_list>
        
     at Linux or Mac command prompt. <mcr_directory> is the directory 
     where version 8.3 of MCR is installed or the directory where 
@@ -45,12 +45,12 @@ Files to package for Standalone
     If you have version 8.3 of the MCR installed in 
     /mathworks/home/application/v83, run the shell script as:
     
-       ./run_condor_runSLIC.sh /mathworks/home/application/v83
+       ./run_condor_runSLICExact.sh /mathworks/home/application/v83
        
     If you have MATLAB installed in /mathworks/devel/application/matlab, 
     run the shell script as:
     
-       ./run_condor_runSLIC.sh /mathworks/devel/application/matlab
+       ./run_condor_runSLICExact.sh /mathworks/devel/application/matlab
 -MCRInstaller.zip
    -if end users are unable to download the MCR using the above  
     link, include it when building your component by clicking 
@@ -93,7 +93,7 @@ A. Linux x86-64 systems:
         NOTE: The environment variable syntax utilizes forward 
               slashes (/), delimited by colons (:).  
         NOTE: When deploying standalone applications, it is possible 
-              to run the shell script file run_condor_runSLIC.sh 
+              to run the shell script file run_condor_runSLICExact.sh 
               instead of setting environment variables. See 
               section 2 "Files to Deploy and Package".    
 
