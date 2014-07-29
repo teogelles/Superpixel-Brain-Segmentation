@@ -3,14 +3,18 @@
 % on a range from 0 to 100
 
 
-function normalizeCSV()
+function normalizeCSV(direcNum, cols)
+    
+    if ~exist('direcNum','var')
+        direcNum = 120;
+    end
     
     global debug;
     debug = false;
     
-    filebase = '/scratch/tgelles1/summer2014/slicExact120/features/CSV/';
-    savefilebase = ['/scratch/tgelles1/summer2014/slicExact120/features/' ...
-                    'CSV_NORM/'];
+    filebase = '/scratch/tgelles1/summer2014/slicExact120/features/CSV_NORM/';
+    savefilebase = ['/scratch/tgelles1/summer2014/slicExact', num2str(direcNum), '/features/' ...
+                    'CSV_Changed/'];
     
     if ~exist(savefilebase,'dir')
         mkdir(savefilebase);
@@ -33,18 +37,31 @@ function normalizeCSV()
             continue
         end        
         
+        %temp
+        
+        if ~strcmp(file,'organized_med.csv')
+            continue
+        end
         fullfile = strcat(filebase,file);
         csvmat = csvread(fullfile);
-        csvmat = processSV(csvmat);
-        savefile = strcat(savefilebase,file);
-        csvwrite(savefile,csvmat);
+        if ~exist('cols','var')
+            cols = 1:size(csvmat,2);
+        end
+        for i = 4:size(csvmat,2)
+            cols = [4:(i-1) (i+1):size(csvmat,2)];
+            csvmat = processSV(csvmat, cols);
+            savefile = strcat(savefilebase,num2str(i),'-',file);
+            csvwrite(savefile,csvmat);
+        end
     end
 end
 
-function newSV = processSV(superVoxels)
+function newSV = processSV(superVoxels,cols)
     
 %    newSV = removeBackgroundSV(superVoxels);
     newSV = normalizeXYZ(superVoxels);
+    % keep only wanted columns
+    newSV = newSV(:,cols);
 end
 
 function newSV = normalizeXYZ(newSV)
