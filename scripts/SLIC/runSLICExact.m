@@ -5,7 +5,7 @@
 % wrapper used in MATLAB in order to run experiments with SLIC_3D
 % and getSLICFeatures.
 
-function slicFeatures = runSLICExact(imageType, imageNum, ...
+function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
                                 shapeParam, numIters)
     % slicFeatures - Returns the list of features obtained from
     % getSLICFeatures()
@@ -34,25 +34,25 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
     if ~exist('shapeParam','var')
         shapeParam = .1;
     end
-    
-    if ~exist('imageType', 'var')
-        imageType = 'AD';
+
+    if ~exist('numSuperVoxels', 'var')
+        numSuperVoxels = 120;
     end
     
     if ~exist('imageNum','var')
         imageNum = 1;
     end
     
-    numSuperVoxels = 504;
-    
-    fprintf('Type: %s\n', imageType);
-    fprintf('Num: %d\n', imageNum);
+    if ~exist('imageType', 'var')
+        imageType = 'AD';
+    end
     
     %For the entropy runs, we don't want the images saved
-    saveImages = true;
+    saveFiles = true;
          
     % base directory
-    saveDir = '/scratch/tgelles1/summer2014/slicExactTest/';
+    saveDir = strcat('/scratch/tgelles1/summer2014/slicExact', ...
+                     num2str(numSuperVoxels), '/');
     if ~exist(saveDir,'dir')
         mkdir(saveDir);
     end
@@ -75,6 +75,16 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
                     num2str(numSuperVoxels),'-',num2str(shapeParam), ...
                     '-',num2str(imageNum), '-',num2str(numIters),'.mat');
     
+
+    fprintf('Saving slic file to: %s\n', slicAddr);
+    fprintf('Saving border file to: %s\n', borderAddr);
+    fprintf('Saving x file to: %s\n', xAddr);
+    fprintf('Saving centerinfo file to: %s\n', centerinfoAddr);
+    fprintf('Saving cropped file to: %s\n', cropAddr);
+    if (~saveFiles)
+        fprintf(['Note: saveFiles is false. Files will not be saved\' ...
+                 'n']);
+    end
     
     % checks if we've already run our primary SLIC code and thus
     % the file already exists
@@ -96,22 +106,18 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
         
         [X cropOffset] = load_nifti(imageType,imageNum);
         
-        [labels border centerInfo] = SLIC_3DExact(X, shapeParam, numIters);
+        [labels border centerInfo] = SLIC_3DExact(X, numSuperVoxels, ...
+                                                  shapeParam, numIters);
         
         slicNii = make_nii(labels);
         borderNii = make_nii(border);
         xNii = make_nii(X);
         
-        if saveImages
-            fprintf('Saving SLIC to %s\n', slicAddr);
+        if saveFiles
             save_nii(slicNii, slicAddr);
-            fprintf('Saving Border to %s\n', borderAddr);
             save_nii(borderNii, borderAddr);
-            fprintf('Saving X to %s\n', xAddr);
             save_nii(xNii, xAddr);
-            fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
             save(centerinfoAddr, 'centerInfo');
-            fprintf('Saving CropOffset to %s\n', cropAddr);
             save(cropAddr, 'cropOffset');
         end
     end
@@ -124,6 +130,8 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
         tissueFilename = strcat('/sonigroup/summer2014/ADNI_tissues/', ...
                                 imageType, sprintf('%03d',imageNum), ...
                                 '_tissueSeg.nii');
+        
+        fprintf('Loading tissues from: %s\n', tissueFilename);
         tissues = load_tissues(tissueFilename, cropOffset);
     end
     
@@ -137,8 +145,10 @@ function slicFeatures = runSLICExact(imageType, imageNum, ...
         id = imageNum+1000;
     end
     
-    featureFilename = strcat('/scratch/tgelles1/summer2014/slicExact/features/',...
-                             imageType,sprintf('%03d',imageNum),'.txt');
+    featureFilename = strcat(saveDir, 'features/', imageType, ...
+                             sprintf('%03d',imageNum),'.txt');
+    
+    fprintf('Saving feature file to: %s\n', featureFilename);
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
                                       cropOffset,featureFilename, id);
@@ -177,7 +187,7 @@ function [X, indexList] = load_nifti(imageType,imageNum)
     end
     
 
-    fprintf('ImageName: %s\n', imageName);
+    fprintf('Loading Image: %s\n', imageName);
     
     %Image
     I_t1uncompress = wfu_uncompress_nifti(imageName);

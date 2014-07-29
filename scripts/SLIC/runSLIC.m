@@ -52,28 +52,8 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     %For the entropy runs, we don't want the images saved
-    saveImages = false;
+    saveFiles = false;
     
-    %We have noticed that some images are bad, so this will
-    %continue if we're on such an image
-    % leaveout = ADNIerrors();
-    % exception = MException('ArgumentError:ImageNum',['Bad image ' ...
-    %                     'number']);
-    
-    % if (strcmp(dirType, 'AD'))
-    %     if any(imageNum == leaveout{1})
-    %         throw(exception);
-    %     end
-    % elseif (strcmp(dirType, 'MCI'))
-    %     if any(imageNum == leaveout{2})
-    %         throw(exception)
-    %     end
-    % elseif (strcmp(dirType, 'CN'))
-    %     if any(imageNum == leaveout{3})
-    %         throw(exception)
-    %     end
-    % end
-         
     % base directory
     saveDir = '/scratch/tgelles1/summer2014/slic/';
     
@@ -99,6 +79,15 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
                     '-',num2str(res),'-',num2str(imageNum), ...
                     '-',num2str(numIters),'.mat');
     
+    fprintf('Saving slic file to: %s\n', slicAddr);
+    fprintf('Saving border file to: %s\n', borderAddr);
+    fprintf('Saving x file to: %s\n', xAddr);
+    fprintf('Saving centerinfo file to: %s\n', centerinfoAddr);
+    fprintf('Saving cropped file to: %s\n', cropAddr);
+    if (~saveFiles)
+        fprintf(['Note: saveFiles is false. Files will not be saved\' ...
+                 'n']);
+    end
     
     % checks if we've already run our primary SLIC code and thus
     % the file already exists
@@ -127,16 +116,11 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         borderNii = make_nii(border);
         xNii = make_nii(X);
         
-        if saveImages
-            fprintf('Saving SLIC to %s\n', slicAddr);
+        if saveFiles
             save_nii(slicNii, slicAddr);
-            fprintf('Saving Border to %s\n', borderAddr);
             save_nii(borderNii, borderAddr);
-            fprintf('Saving X to %s\n', xAddr);
             save_nii(xNii, xAddr);
-            fprintf('Saving CenterInfo to %s\n', centerinfoAddr);
             save(centerinfoAddr, 'centerInfo');
-            fprintf('Saving CropOffset to %s\n', cropAddr);
             save(cropAddr, 'cropOffset');
         end
     end
@@ -149,6 +133,8 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         tissueFilename = strcat('/sonigroup/summer2014/ADNI_tissues/', ...
                                 dirType, sprintf('%03d',imageNum), ...
                                 '_tissueSeg.nii');
+        
+        fprintf('Loading tissues from: %s\n', tissueFilename);
         tissues = load_tissues(tissueFilename, cropOffset, res);
     end
     
@@ -162,12 +148,13 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         id = imageNum+1000;
     end
     
-    featureFilename = strcat('/scratch/tgelles1/summer2014/ADNI_features/',...
-                             dirType,sprintf('%03d',imageNum),'.txt');
+    featureFilename = strcat(saveDir, 'features/', imageType, ...
+                             sprintf('%03d',imageNum),'.txt');
+    
+    fprintf('Saving feature file to: %s\n', featureFilename);
     
     slicFeatures = getSLICFeatures(X, labels, tissues, centerInfo, ...
                                       cropOffset,featureFilename, id);
-    
 end
 
 
