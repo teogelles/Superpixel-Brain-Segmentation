@@ -56,6 +56,18 @@ for use with 2D images.
 		    supervoxels.
 
 ./runSLIC.m - The main interface we used for running the SLIC
-	      algorithm and getting relevant features.  This scripts
+	      algorithm and getting relevant features.  This script
 	      organizes the inputs and usage of the SLIC_3D and
 	      getSLICFeatures programs.
+
+./runSLIC2D.m - Small wrapper around SLIC_2D.m, much less comprehensive than
+	      	runSLIC.m.
+
+./runSLIC2DExact.m - Identical to runSLIC2D.m
+
+./runSLICExact.m - Identical to runSLIC.m
+
+./testEntropy.m - Script to run many iterations of SLIC with different
+		  parameters and compare the per-voxel entropies for each
+		  run, with the goal of finding the ideal parameters by
+		  minimizing entropy.

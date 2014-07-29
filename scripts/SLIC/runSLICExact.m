@@ -1,8 +1,8 @@
-% slicFeatures
+% runSLICExact
 % Authors: Andrew Gilchrist-Scott & Teo Gelles
 %
-% This file contains the code for runSLIC, which is the main
-% wrapper used in MATLAB in order to run experiments with SLIC_3D
+% This file contains the code for runSLICExact, which is the main
+% wrapper used in MATLAB in order to run experiments with SLIC_3DExact
 % and getSLICFeatures.
 
 function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
@@ -18,8 +18,6 @@ function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
     % /sonigroup/fmri/AD_T1, and /sonigroup/fmri/IBSR_nifti_stripped
     % respectively.   Inputs which do not match one of these are
     % assumed to refer to the entire directory for the given image.
-    % @param res - The inverse resolution of the image (1 for full,
-    % 2 for half, etc.)
     % @param numSuperVoxels - The number of superVoxels to use in
     % SLIC
     % @param shapeParam - The weight to use for the distance metric
@@ -81,6 +79,7 @@ function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
     fprintf('Saving x file to: %s\n', xAddr);
     fprintf('Saving centerinfo file to: %s\n', centerinfoAddr);
     fprintf('Saving cropped file to: %s\n', cropAddr);
+    
     if (~saveFiles)
         fprintf(['Note: saveFiles is false. Files will not be saved\' ...
                  'n']);

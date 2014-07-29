@@ -1,4 +1,4 @@
-%% SLIC, A Grayscale 3D MATLAB implementation
+%% SLIC, A Grayscale 2D MATLAB implementation
 % The following code is a 3D MATLAB implementation of the SLIC
 % algorithm, an elegantly simple algo used for image segmentation
 % into a given number of superpixels following a given compactness
@@ -48,7 +48,7 @@ function [labels, borders, centerInfo] = SLIC_2DExact(imageMat, numSuperpixels, 
     
     if (~any(acceptedSVList == numSuperVoxels))
         fprintf(['numSuperVoxels value invalid.  Setting to default ' ...
-                 'of 120']);
+                 'of 120\n']);
         numSuperVoxels = 110;
     end
     

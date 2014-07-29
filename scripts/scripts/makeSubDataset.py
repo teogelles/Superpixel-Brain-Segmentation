@@ -3,17 +3,22 @@ import subprocess
 import sys
 
 if (len(sys.argv) != 5):
-    print("Usage: ./makeSubDataset <dataType> <dataNum> <wantedVals> <saveFile>")
+    print("Usage: ./makeSubDataset directory inputFile wantedVals saveFile")
     sys.exit(0)
 
-dataType = sys.argv[1]
-dataNum = sys.argv[2].zfill(3)
-dataName = "/scratch/tgelles1/summer2014/ADNI_features/CSV/" + dataType + dataNum + ".csv"
+dataDirname = sys.argv[1]
+filename = sys.argv[2]
+dataDir = "/scratch/tgelles1/summer2014/" + dataDirname + "/features/CSV_NORM/"
+dataName = dataDir + filename + ".csv"
 dataFile = open(dataName)
 
 wantedVals = eval(sys.argv[3])
 
-saveFilename = sys.argv[4]
+saveFilename = dataDir + sys.argv[4] + ".csv"
+
+print("Loading " + dataName)
+print("Saving to " + saveFilename)
+
 saveFile = open(saveFilename, 'w')
 
 

@@ -5,14 +5,14 @@
 % wrapper used in MATLAB in order to run experiments with SLIC_3D
 % and getSLICFeatures.
 
-function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
+function slicFeatures = runSLIC(imageNum, imageType, res, numSuperVoxels, ...
                                 shapeParam, numIters)
     % slicFeatures - Returns the list of features obtained from
     % getSLICFeatures()
     %
     % @param imageNum - The numerical index of the image to use in
     % its given folder
-    % @param dirType - The basic directory under which the image
+    % @param imageType - The basic directory under which the image
     % can be found.  Currently recognizes 'CN', 'MCI', 'AD', or 'IBSR',
     % which refer to /sonigroup/fmri/CN_T1, /sonigroup/fmri/MCI_T1,
     % /sonigroup/fmri/AD_T1, and /sonigroup/fmri/IBSR_nifti_stripped
@@ -43,8 +43,8 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         res = 1;
     end
     
-    if ~exist('dirType','var')
-        dirType = 'IBSR';
+    if ~exist('imageType','var')
+        imageType = 'IBSR';
     end
     
     if ~exist('imageNum','var')
@@ -59,22 +59,23 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     
     % file addressing specific to each of the different type of
     % file we may choose to run
-    slicAddr=strcat(saveDir,'slic','-',dirType,'-', ...
+    slicAddr=strcat(saveDir,'slic','-',imageType,'-', ...
                     num2str(numSuperVoxels),'-',num2str(shapeParam), ...
                     '-',num2str(res),'-',num2str(imageNum),'-', ...
                     num2str(numIters),'.nii');
-    borderAddr=strcat(saveDir,'border','-',dirType,'-', ...
+    borderAddr=strcat(saveDir,'border','-',imageType,'-', ...
                       num2str(numSuperVoxels),'-',num2str(shapeParam), ...
                       '-',num2str(res),'-',num2str(imageNum), ...
                       '-',num2str(numIters),'.nii');
-    xAddr=strcat(saveDir,'x','-',num2str(numSuperVoxels),'-', ...
-                 num2str(shapeParam),'-',dirType,'-',num2str(res), ...
-                 '-',num2str(imageNum),'-',num2str(numIters),'.nii');
-    centerinfoAddr=strcat(saveDir,'centerinfo','-',dirType,'-', ...
+    xAddr=strcat(saveDir,'x','-',imageType,'-', ...
+                 num2str(numSuperVoxels),'-',num2str(shapeParam), ...
+                 '-',num2str(res),'-',num2str(imageNum), '-', ...
+                 num2str(numIters),'.nii');
+    centerinfoAddr=strcat(saveDir,'centerinfo','-',imageType,'-', ...
                           num2str(numSuperVoxels),'-',num2str(shapeParam), ...
                           '-',num2str(res),'-',num2str(imageNum), ...
                           '-',num2str(numIters),'.mat');
-    cropAddr=strcat(saveDir,'cropoffset','-',dirType,'-', ...
+    cropAddr=strcat(saveDir,'cropoffset','-',imageType,'-', ...
                     num2str(numSuperVoxels),'-',num2str(shapeParam), ...
                     '-',num2str(res),'-',num2str(imageNum), ...
                     '-',num2str(numIters),'.mat');
@@ -107,7 +108,7 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
         cropOffset = cropOffset.cropOffset;
     else
         
-        [X cropOffset] = load_nifti(dirType,imageNum,res);
+        [X cropOffset] = load_nifti(imageType,imageNum,res);
         
         [labels border centerInfo] = SLIC_3D(X,numSuperVoxels, ...
                                              shapeParam, numIters);
@@ -126,23 +127,23 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
     end
     
     
-    if (strcmp(dirType, 'IBSR'))
+    if (strcmp(imageType, 'IBSR'))
         tissues = NaN;
 
     else
         tissueFilename = strcat('/sonigroup/summer2014/ADNI_tissues/', ...
-                                dirType, sprintf('%03d',imageNum), ...
+                                imageType, sprintf('%03d',imageNum), ...
                                 '_tissueSeg.nii');
         
         fprintf('Loading tissues from: %s\n', tissueFilename);
         tissues = load_tissues(tissueFilename, cropOffset, res);
     end
     
-    if strcmp(dirType, 'AD')
+    if strcmp(imageType, 'AD')
         id = imageNum;
-    elseif strcmp(dirType, 'MCI')
+    elseif strcmp(imageType, 'MCI')
         id = imageNum + 92;
-    elseif strcmp(dirType, 'CN')
+    elseif strcmp(imageType, 'CN')
         id = imageNum + 92 + 203;
     else
         id = imageNum+1000;
@@ -158,13 +159,13 @@ function slicFeatures = runSLIC(imageNum, dirType, res, numSuperVoxels, ...
 end
 
 
-function [X, indexList] = load_nifti(dirType,imageNum, res)
+function [X, indexList] = load_nifti(imageType,imageNum, res)
 
 
     fprintf('Loading Nifti Image...\n');
     
     imageName = '';
-    if (strcmp(dirType, 'IBSR'))
+    if (strcmp(imageType, 'IBSR'))
         
         if (imageNum < 10)
             imageName = strcat('/sonigroup/fmri/IBSR_nifti_stripped/IBSR_0', ...
@@ -174,24 +175,24 @@ function [X, indexList] = load_nifti(dirType,imageNum, res)
                                num2str(imageNum), '_ana_strip.nii');
         end
         
-    elseif (strcmp(dirType, 'AD')) || (strcmp(dirType,'MCI')) || ...
-            (strcmp(dirType,'CN'))
+    elseif (strcmp(imageType, 'AD')) || (strcmp(imageType,'MCI')) || ...
+            (strcmp(imageType,'CN'))
         imageName = strcat('/sonigroup/fmri/ADNI_Stripped/', ...
-                           dirType, sprintf('%03d',imageNum),'.nii'); ...
+                           imageType, sprintf('%03d',imageNum),'.nii'); ...
             
             
         % The below code is only good for the original, non
         % skull-stripped images
         % imageName = strcat('/sonigroup/fmri/AD_T1/patient', ...
         %                        num2str(imageNum), '.nii');
-        % elseif (strcmp(dirType, 'CN'))
+        % elseif (strcmp(imageType, 'CN'))
         %     imageName = strcat('/sonigroup/fmri/CN_T1/patient', ...
         %                        num2str(imageNum), '.nii');
-        % elseif (strcmp(dirType, 'MCI'))
+        % elseif (strcmp(imageType, 'MCI'))
         %     imageName = strcat('/sonigroup/fmri/MCI_T1/patient', ...
         %                        num2str(imageNum), '.nii');
     else
-        imageName = dirType;
+        imageName = imageType;
     end
     
     if (~exist(imageName, 'file'))
