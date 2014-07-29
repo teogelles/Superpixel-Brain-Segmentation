@@ -1,7 +1,7 @@
 % We've changed this file to screw around with the segmentation,
 % and now, it's our file! Muah ha ha ha ha!
 
-function SpectrallyCluster(FileName,sigma)
+function SpectrallyCluster(FileName,k,Neighbors,sigma)
 
     global debug;
     dState = debug;
@@ -21,11 +21,20 @@ function SpectrallyCluster(FileName,sigma)
     if ~exist('sigma','var')
         sigma = 1;
     end
+    
+    if ~exist('k','var')
+        fprintf('Setting k to 40\n');
+        k = 40; %number of clusters
+    end
+    
+    if ~exist('Neighbors','var')
+        fprintf('Finding 30 nearest neighbors\n');
+        Neighbors = 30;
+    end
 
-    k         = 40;          % Number of Clusters
-    Neighbors = 30;         % Number of Neighbors
     saveData  = true;      % Whether or not to save the data once computed
     
+    disp(FileName)
     Data = csvread(FileName);
     [m n d] = size(Data);
     Data = double(Data);

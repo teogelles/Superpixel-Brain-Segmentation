@@ -37,12 +37,16 @@ function W = sv_SimGraph_NearestNeighbors(M, k, Type, sigma)
     indi = zeros(1, k * n);
     indj = zeros(1, k * n);
     inds = zeros(1, k * n);
-
+    
+    useXYZ = false;
     for ii = 1:n
         % Compute i-th column of distance matrix
         dist = distEuclidean(repmat(M(1:3, ii), 1, n), M(1:3,:));
-        simDist = distEuclidean(repmat(M(4:end, ii), 1, n), M(4:end,:));
-        
+        if ~useXYZ
+            simDist = distEuclidean(repmat(M(4:end, ii), 1, n), M(4:end,:));
+        else
+            simDist = distEuclidean(repmat(M(:, ii), 1, n), M);
+        end
         % Sort row by distance
         [s, O] = sort(dist, 'ascend');
         
