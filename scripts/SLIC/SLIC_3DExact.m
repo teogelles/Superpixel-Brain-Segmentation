@@ -31,7 +31,12 @@ function [labels, borders, centerInfo] = SLIC_3DExact(imageMat,numSuperVoxels,sh
     % its average x,y, and z coordinates as well as the number of
     % voxels that are members 
     
-    if ~(shapeParam) || (shapeParam < 0)
+    disp('Testing:');
+    disp(shapeParam);
+    disp(~(shapeParam));
+    disp((shapeParam < 0));
+    
+    if any(~(shapeParam)) || any((shapeParam < 0))
         shapeParam = 20;
         fprintf('Setting shapeParam to default of 20');
     end
