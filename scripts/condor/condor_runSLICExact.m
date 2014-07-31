@@ -5,7 +5,7 @@
 % wrapper used in MATLAB in order to run experiments with SLIC_3DExact
 % and getSLICFeatures.
 
-function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
+function slicFeatures = condor_runSLICExact(imageType, imageNum, numSuperVoxels, ...
                                 shapeParam, numIters)
     % slicFeatures - Returns the list of features obtained from
     % getSLICFeatures()
@@ -34,6 +34,7 @@ function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
     end
 
     if ~exist('numSuperVoxels', 'var')
+
         numSuperVoxels = 125;
     end
     
@@ -104,7 +105,6 @@ function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
     else
         
         [X cropOffset] = load_nifti(imageType,imageNum);
-        
         [labels border centerInfo] = SLIC_3DExact(X, numSuperVoxels, ...
                                                   shapeParam, numIters);
         
