@@ -7,14 +7,23 @@ figure;
 clc;
 rand('seed',1);
 % Load data 
-% load data/wine.mat;
-load data/segment.mat;
-%load data/usps.mat;
+
+filename = ['/scratch/tgelles1/summer2014/slicExact504/features/' ...
+            'CSV_NORM/organized_med.csv'];
+groupname = ['/scratch/tgelles1/summer2014/slicExact504/features/' ...
+             'CSV_NORM/med_groups.csv'];
+[xTr yTr xTe yTe] = loadAndSplit(filename,groupname,1,3);
+%have to change them from nxd to dxn
+xTr = xTr';
+yTr = yTr';
+xTe = xTe';
+yTe = yTe';
+
 
 % KNN classification error before metric learning  
 errRAW=knncl([],xTr, yTr,xTe,yTe,1);fprintf('\n');
 
-pause
+
 
 fprintf('\n')
 L0=pca(xTr)';
@@ -29,7 +38,6 @@ title(['PCA Test (Error: ' num2str(100*errPCA(2),3) '%)'])
 noticks;box on;
 drawnow
 
-pause
 
 
 % Call LMNN to get the initiate linear transformation
@@ -39,7 +47,6 @@ disp('Learning initial metric with LMNN ...')
 % KNN classification error after metric learning using LMNN
 errL=knncl(L,xTr, yTr,xTe,yTe,1);fprintf('\n');
 
-pause
 
 % Plotting LMNN embedding
 subplot(3,2,3);
@@ -53,13 +60,12 @@ title(['LMNN Test (Error: ' num2str(100*errL(2),3) '%)'])
 noticks;box on;
 drawnow
 
-pause
 
 
 % Gradient boosting
 fprintf('\n')
 disp('Learning nonlinear metric with GB-LMNN ... ')
-embed=gb_lmnn(xTr,yTr,3,L,'ntrees',200,'verbose',false,'XVAL',xVa,'YVAL',yVa);
+embed=gb_lmnn(xTr,yTr,3,L,'ntrees',200,'verbose',false); %'XVAL',xVa,'YVAL',yVa);
 
 % KNN classification error after metric learning using gbLMNN
 errGL=knncl([],embed(xTr), yTr,embed(xTe),yTe,1);fprintf('\n');
