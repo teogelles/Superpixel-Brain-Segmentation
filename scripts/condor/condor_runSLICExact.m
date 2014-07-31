@@ -34,7 +34,8 @@ function slicFeatures = condor_runSLICExact(imageType, imageNum, numSuperVoxels,
     end
 
     if ~exist('numSuperVoxels', 'var')
-        numSuperVoxels = 120;
+
+        numSuperVoxels = 125;
     end
     
     if ~exist('imageNum','var')
@@ -104,7 +105,6 @@ function slicFeatures = condor_runSLICExact(imageType, imageNum, numSuperVoxels,
     else
         
         [X cropOffset] = load_nifti(imageType,imageNum);
-    
         [labels border centerInfo] = SLIC_3DExact(X, numSuperVoxels, ...
                                                   shapeParam, numIters);
         
@@ -144,7 +144,13 @@ function slicFeatures = condor_runSLICExact(imageType, imageNum, numSuperVoxels,
         id = imageNum+1000;
     end
     
-    featureFilename = strcat(saveDir, 'features/', imageType, ...
+    featureFileBase = strcat(saveDir,'features/');
+    
+    if ~exist(featureFileBase,'dir')
+        mkdir(featureFileBase)
+    end
+    
+    featureFilename = strcat(featureFileBase, imageType, ...
                              sprintf('%03d',imageNum),'.txt');
     
     fprintf('Saving feature file to: %s\n', featureFilename);
