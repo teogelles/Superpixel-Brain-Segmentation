@@ -40,13 +40,13 @@ function [labels, borders, centerInfo] = SLIC_3DExact(imageMat,numSuperVoxels,sh
     
     acceptedSVList = zeros(100, 1);
     for i=1:100
-        acceptedSVList(i) = i*(i+1)*(i+2);
+        acceptedSVList(i) = i^3;
     end
     
     if (~any(acceptedSVList == numSuperVoxels))
         fprintf(['numSuperVoxels value invalid.  Setting to default ' ...
                  'of 120\n']);
-        numSuperVoxels = 120;
+        numSuperVoxels = 125;
     end
     
     % Initialize superpixel centers and adjust to neighbor point of
@@ -167,36 +167,21 @@ end
 
 function [seeds steps] = getSeeds(imageMat, numSuperVoxels)
     
-    numSeeds = [0, 0, 0];
+    numSeeds = numSuperVoxels^(1/3);
     
     xDim = size(imageMat, 1);
     yDim = size(imageMat, 2);
     zDim = size(imageMat, 3);
-    
-    [~, m] = min([xDim, yDim, zDim]);
-    [~, M] = max([xDim, yDim, zDim]);
-    
-    minVal = floor((numSuperVoxels)^(1/3));
-    medVal = minVal + 1;
-    maxVal = minVal + 2;
-    
-    if (M == m)
-        numSeeds = [minVal medVal maxVal];
-    else
-        numSeeds(m) = minVal;
-        numSeeds(M) = maxVal;
-        numSeeds(find(~numSeeds)) = medVal;
-    end
-    
-    steps = [xDim/numSeeds(1) yDim/numSeeds(2) zDim/numSeeds(3)];
+        
+    steps = [xDim/numSeeds yDim/numSeeds zDim/numSeeds];
     
     
-    seeds = zeros(numSeeds(1)*numSeeds(2)*numSeeds(3), 4);
+    seeds = zeros(numSuperVoxels, 4);
     
     index = 1;
-    for i=1:numSeeds(1)
-        for j=1:numSeeds(2)
-            for k=1:numSeeds(3)
+    for i=1:numSeeds
+        for j=1:numSeeds
+            for k=1:numSeeds
 
                 coords = round([(i-.5)*steps(1) (j-.5)*steps(2) ...
                                 (k-.5)*steps(3)]);
