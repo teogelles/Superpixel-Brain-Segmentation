@@ -9,6 +9,7 @@ rand('seed',1);
 % Load data 
 % load data/wine.mat;
 load data/segment.mat;
+
 %load data/usps.mat;
 
 % KNN classification error before metric learning  

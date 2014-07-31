@@ -1,0 +1,351 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Mirror Descent for Metric Learning (MDML) Demo</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-04-01"><meta name="DC.source" content="mdmlPublish.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Mirror Descent for Metric Learning (MDML) Demo</h1><!--introduction--><p>Demonstrates how to run MDML (mirror descent for metric learning), which learns a low-dimensional (sparse) Mahalanobis metric, given labeled pairs of points. A pair of points (x, z) is labeled 'similar' (y = 1) or dissimilar (y = -1). Sparsity here is in terms of the eigen- spectrum of the metric matrix, M, which is used to measure the distance betwee two points (x, z) as</p><p><img src="mdmlPublish_eq17269.png" alt="$$d(x, z) = \sqrt{(x - z)^\prime M (x - z)} = \sqrt{(x - z)^\prime V E V^\prime(x - z)}$">$,</p><p>i.e., diag(E) is sparse. Projection into this lower-dimensional space can be achieved via <img src="mdmlPublish_eq77953.png" alt="$$P(x) = \tilde V {\tilde E}^\frac{1}{2} x $$">.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">A 2-Class Example</a></li><li><a href="#2">Perform MDML using hinge loss + Frobenius divergence</a></li><li><a href="#3">Perform MDML using logistic loss + von Neumann divergence</a></li><li><a href="#4">A 3-d Example</a></li><li><a href="#5">Perform MDML using hinge loss + Frobenius divergence</a></li><li><a href="#6">Perform MDML using logistic loss + von Neumann divergence</a></li></ul></div><h2>A 2-Class Example<a name="1"></a></h2><p>In this example, we generate 2-d two-class data with 8 additional garbage (uncorrelated and random) dimensions to illustrate that MDML can learn a low-dimensional (low-rank) representation from the similarity information of the data.</p><pre class="codeinput"><span class="comment">% Generate the training and test data</span>
+L = 500;  <span class="comment">% Number of data points</span>
+K = 3;    <span class="comment">% Number of nearest neighbors to consider</span>
+rawData = generate2ClassData(L);
+
+<span class="comment">% Construct tuples of supervised pairs of data, using K nearest neighbors.</span>
+<span class="comment">% A tuple is (x, z, y), where x and z are two training examples and y = +1</span>
+<span class="comment">% if the two examples belong to the same class (hence SIMILAR), and y = -1</span>
+<span class="comment">% if the two examples belong to different classes (hence DISSIMILAR)</span>
+[Isim, Idis] = generateLabeledPairs(rawData.Xtrn, rawData.ytrn, K);
+mdmlData.X = rawData.Xtrn;
+mdmlData.I = [Isim; Idis];
+mdmlData.y = [ones(size(Isim, 1), 1); -ones(size(Idis, 1), 1)];
+
+<span class="comment">% Randomize the order of data points</span>
+J = randperm(length(mdmlData.y));
+mdmlData.I = mdmlData.I(J, :);
+mdmlData.y = mdmlData.y(J);
+</pre><h2>Perform MDML using hinge loss + Frobenius divergence<a name="2"></a></h2><pre class="codeinput">settings = mdmlSettings(<span class="string">'loss'</span>, <span class="string">'hinge'</span>,<span class="keyword">...</span><span class="comment">     % Loss function</span>
+                        <span class="string">'breg'</span>, <span class="string">'frobenius'</span>,<span class="keyword">...</span><span class="comment"> % Bregman divergence</span>
+                        <span class="string">'eta'</span>, 0.25,<span class="keyword">...</span><span class="comment">         % Learning rate</span>
+                        <span class="string">'rho'</span>, 0.05,<span class="keyword">...</span><span class="comment">         % Trace-norm regularization</span>
+                        <span class="string">'k'</span>, K,<span class="keyword">...</span><span class="comment">              % Num. nearest neighbors</span>
+                        <span class="string">'acc'</span>, 1e-6,<span class="keyword">...</span><span class="comment">         % Math. Accuracy/tolerance</span>
+                        <span class="string">'verbose'</span>, 0,<span class="keyword">...</span><span class="comment">        % Display-level verbosity</span>
+                        <span class="string">'debug'</span>, 0,<span class="keyword">...</span><span class="comment">          % Perform sanity checks</span>
+                        <span class="string">'progbar'</span>, 1);          <span class="comment">% Progress bar</span>
+
+mdmlResults = mdml(mdmlData, settings);
+
+<span class="comment">% Project the data into the new low-dimensional space, whose basis is given</span>
+<span class="comment">% by the two largest eigenvalues.</span>
+Mhalf = mdmlResults.V(:, [10, 9]) * diag(sqrt(mdmlResults.E([10, 9])));
+XptrnFH = rawData.Xtrn * Mhalf;
+
+<span class="comment">% Compute the kNN error of this approach</span>
+ypred = kNNClassify(Mhalf, rawData.Xtrn, rawData.ytrn, rawData.Xtst, K);
+err = 1 - mean(ypred == rawData.ytst);
+fprintf(<span class="string">'Test error on 2D data set (H+F) = %g%%.\n\n'</span>, err*100);
+</pre><h2>Perform MDML using logistic loss + von Neumann divergence<a name="3"></a></h2><pre class="codeinput">settings.loss = <span class="string">'logistic'</span>;    <span class="comment">% Only change loss and breg, keep everything</span>
+settings.breg = <span class="string">'vonneumann'</span>;  <span class="comment">% else the same.</span>
+mdmlResults = mdml(mdmlData, settings);
+
+<span class="comment">% Now project the training data and the test data into a new space,</span>
+<span class="comment">% whose basis is given by the two largest eigenvalues.</span>
+Mhalf = mdmlResults.V(:, [10, 9]) * diag(sqrt(mdmlResults.E([10, 9])));
+XptrnVNL = rawData.Xtrn * Mhalf;
+
+<span class="comment">% Compute the kNN error of this approach</span>
+ypred = kNNClassify(Mhalf, rawData.Xtrn, rawData.ytrn, rawData.Xtst, K);
+err = 1 - mean(ypred == rawData.ytst);
+fprintf(<span class="string">'Test error on 2D data set (L+VN) = %g%%.\n\n'</span>, err*100);
+
+<span class="comment">% Plot</span>
+h = subplot(1, 3, 1);
+plotDataSet(h, rawData.Xtrn(:, rawData.I), rawData.ytrn, <span class="string">'2d (Orig) + 8d (Garbage)'</span>);
+h = subplot(1, 3, 2);
+plotDataSet(h, XptrnFH, rawData.ytrn, <span class="string">'Projected Data (F + H)'</span>);
+h = subplot(1, 3, 3);
+plotDataSet(h, XptrnVNL, rawData.ytrn, <span class="string">'Projected Data (VN + L)'</span>);
+</pre><pre class="codeoutput">Performing metric learning with frobenius + hinge
+Num pairs of instances seen = 2100, Num updates = 1087.
+Time        = 3.45755 seconds
+#Zeros in E = 4 / 10
+Test error on 2D data set (H+F) = 5.33333%.
+
+Performing metric learning with vonneumann + logistic
+Num pairs of instances seen = 2100, Num updates = 2075.
+Time        = 3.38359 seconds
+#Zeros in E = 0 / 10
+Test error on 2D data set (L+VN) = 12%.
+
+</pre><img vspace="5" hspace="5" src="mdmlPublish_01.png" alt=""> <h2>A 3-d Example<a name="4"></a></h2><p>In this example, we generate 2-d three-class data with 8 additional garbage (uncorrelated and random) dimensions to illustrate that MDML can learn a low-dimensional (low-rank) representation from the similarity information of the data.</p><pre class="codeinput"><span class="comment">% Generate the training and test data</span>
+rawData = generate3ClassData(L);
+
+<span class="comment">% Construct tuples of supervised pairs of data, using K nearest neighbors</span>
+[Isim, Idis] = generateLabeledPairs(rawData.Xtrn, rawData.ytrn, K);
+mdmlData.X = rawData.Xtrn;
+mdmlData.I = [Isim; Idis];
+mdmlData.y = [ones(size(Isim, 1), 1); -ones(size(Idis, 1), 1)];
+
+<span class="comment">% Randomize the order of data points</span>
+J = randperm(length(mdmlData.y));
+mdmlData.I = mdmlData.I(J, :);
+mdmlData.y = mdmlData.y(J);
+</pre><h2>Perform MDML using hinge loss + Frobenius divergence<a name="5"></a></h2><pre class="codeinput">settings.loss = <span class="string">'hinge'</span>;
+settings.breg = <span class="string">'frobenius'</span>;
+settings.eta = 0.5;
+settings.rho = 0.1;
+mdmlResults = mdml(mdmlData, settings);
+
+<span class="comment">% Project the data into the new low-dimensional space, whose basis is given</span>
+<span class="comment">% by the two largest eigenvalues.</span>
+Mhalf = mdmlResults.V(:, [10, 9]) * diag(sqrt(mdmlResults.E([10, 9])));
+XptrnFH = rawData.Xtrn * Mhalf;
+
+<span class="comment">% Compute the kNN error of this approach</span>
+ypred = kNNClassify(Mhalf, rawData.Xtrn, rawData.ytrn, rawData.Xtst, K);
+err = 1 - mean(ypred == rawData.ytst);
+fprintf(<span class="string">'Test error on 3D data set (F + H) = %g%%.\n\n'</span>, err*100);
+</pre><h2>Perform MDML using logistic loss + von Neumann divergence<a name="6"></a></h2><pre class="codeinput">settings.loss = <span class="string">'logistic'</span>;
+settings.breg = <span class="string">'vonneumann'</span>;
+settings.eta = 0.5;
+settings.rho = 0.05;
+mdmlResults = mdml(mdmlData, settings);
+
+<span class="comment">% Now project the training data and the test data into a new space,</span>
+<span class="comment">% whose basis is given by the two largest eigenvalues.</span>
+Mhalf = mdmlResults.V(:, [10, 9]) * diag(sqrt(mdmlResults.E([10, 9])));
+XptrnVNL = rawData.Xtrn * Mhalf;
+
+<span class="comment">% Compute the kNN error of this approach</span>
+ypred = kNNClassify(Mhalf, rawData.Xtrn, rawData.ytrn, rawData.Xtst, K);
+err = 1 - mean(ypred == rawData.ytst);
+fprintf(<span class="string">'Test error on 3D data set (VN + L) = %g%%.\n\n'</span>, err*100);
+
+<span class="comment">% Plot</span>
+h = subplot(1, 3, 1);
+plotDataSet(h, rawData.Xtrn(:, rawData.I), rawData.ytrn, <span class="string">'2d (Orig) + 8d (Garbage)'</span>);
+h = subplot(1, 3, 2);
+plotDataSet(h, XptrnFH, rawData.ytrn, <span class="string">'Projected Data (F + H)'</span>);
+h = subplot(1, 3, 3);
+plotDataSet(h, XptrnVNL, rawData.ytrn, <span class="string">'Projected Data (VN + L)'</span>);
+</pre><pre class="codeoutput">Performing metric learning with frobenius + hinge
+Num pairs of instances seen = 2232, Num updates = 1042.
+Time        = 3.35969 seconds
+#Zeros in E = 4 / 10
+Test error on 3D data set (F + H) = 11.9497%.
+
+Performing metric learning with vonneumann + logistic
+Num pairs of instances seen = 2232, Num updates = 2172.
+Time        = 5.65109 seconds
+#Zeros in E = 0 / 10
+Test error on 3D data set (VN + L) = 16.3522%.
+
+</pre><img vspace="5" hspace="5" src="mdmlPublish_02.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Mirror Descent for Metric Learning (MDML) Demo
+% Demonstrates how to run MDML (mirror descent for metric learning), 
+% which learns a low-dimensional (sparse) Mahalanobis metric, given
+% labeled pairs of points. A pair of points (x, z) is labeled 'similar' (y 
+% = 1) or dissimilar (y = -1). Sparsity here is in terms of the eigen-
+% spectrum of the metric matrix, M, which is used to measure the distance 
+% betwee two points (x, z) as
+%
+% $$d(x, z) = \sqrt{(x - z)^\prime M (x - z)} = \sqrt{(x - z)^\prime V E V^\prime(x - z)}$$,
+% 
+% i.e., diag(E) is sparse. Projection into this lower-dimensional space can
+% be achieved via $$P(x) = \tilde V {\tilde E}^\frac{1}{2} x $$.
+
+%% A 2-Class Example
+% In this example, we generate 2-d two-class data with 8 additional garbage 
+% (uncorrelated and random) dimensions to illustrate that MDML can learn a 
+% low-dimensional (low-rank) representation from the similarity information
+% of the data.
+
+% Generate the training and test data
+L = 500;  % Number of data points
+K = 3;    % Number of nearest neighbors to consider
+rawData = generate2ClassData(L);
+
+% Construct tuples of supervised pairs of data, using K nearest neighbors. 
+% A tuple is (x, z, y), where x and z are two training examples and y = +1 
+% if the two examples belong to the same class (hence SIMILAR), and y = -1
+% if the two examples belong to different classes (hence DISSIMILAR)
+[Isim, Idis] = generateLabeledPairs(rawData.Xtrn, rawData.ytrn, K);
+mdmlData.X = rawData.Xtrn;
+mdmlData.I = [Isim; Idis];
+mdmlData.y = [ones(size(Isim, 1), 1); -ones(size(Idis, 1), 1)];
+
+% Randomize the order of data points
+J = randperm(length(mdmlData.y));
+mdmlData.I = mdmlData.I(J, :);
+mdmlData.y = mdmlData.y(J);
+
+%%% Perform MDML using hinge loss + Frobenius divergence
+settings = mdmlSettings('loss', 'hinge',...     % Loss function
+                        'breg', 'frobenius',... % Bregman divergence
+                        'eta', 0.25,...         % Learning rate
+                        'rho', 0.05,...         % Trace-norm regularization
+                        'k', K,...              % Num. nearest neighbors
+                        'acc', 1e-6,...         % Math. Accuracy/tolerance
+                        'verbose', 0,...        % Display-level verbosity
+                        'debug', 0,...          % Perform sanity checks
+                        'progbar', 1);          % Progress bar
+                    
+mdmlResults = mdml(mdmlData, settings);
+
+% Project the data into the new low-dimensional space, whose basis is given 
+% by the two largest eigenvalues.
+Mhalf = mdmlResults.V(:, [10, 9]) * diag(sqrt(mdmlResults.E([10, 9])));
+XptrnFH = rawData.Xtrn * Mhalf; 
+
+% Compute the kNN error of this approach 
+ypred = kNNClassify(Mhalf, rawData.Xtrn, rawData.ytrn, rawData.Xtst, K);
+err = 1 - mean(ypred == rawData.ytst);        
+fprintf('Test error on 2D data set (H+F) = %g%%.\n\n', err*100);
+
+%%% Perform MDML using logistic loss + von Neumann divergence
+settings.loss = 'logistic';    % Only change loss and breg, keep everything
+settings.breg = 'vonneumann';  % else the same.
+mdmlResults = mdml(mdmlData, settings);
+
+% Now project the training data and the test data into a new space,
+% whose basis is given by the two largest eigenvalues.
+Mhalf = mdmlResults.V(:, [10, 9]) * diag(sqrt(mdmlResults.E([10, 9])));
+XptrnVNL = rawData.Xtrn * Mhalf; 
+
+% Compute the kNN error of this approach 
+ypred = kNNClassify(Mhalf, rawData.Xtrn, rawData.ytrn, rawData.Xtst, K);
+err = 1 - mean(ypred == rawData.ytst);        
+fprintf('Test error on 2D data set (L+VN) = %g%%.\n\n', err*100);
+
+% Plot
+h = subplot(1, 3, 1);
+plotDataSet(h, rawData.Xtrn(:, rawData.I), rawData.ytrn, '2d (Orig) + 8d (Garbage)');
+h = subplot(1, 3, 2);                            
+plotDataSet(h, XptrnFH, rawData.ytrn, 'Projected Data (F + H)');
+h = subplot(1, 3, 3);
+plotDataSet(h, XptrnVNL, rawData.ytrn, 'Projected Data (VN + L)');
+
+%% A 3-d Example
+% In this example, we generate 2-d three-class data with 8 additional garbage 
+% (uncorrelated and random) dimensions to illustrate that MDML can learn a 
+% low-dimensional (low-rank) representation from the similarity information
+% of the data.
+
+% Generate the training and test data
+rawData = generate3ClassData(L);
+
+% Construct tuples of supervised pairs of data, using K nearest neighbors                   
+[Isim, Idis] = generateLabeledPairs(rawData.Xtrn, rawData.ytrn, K);
+mdmlData.X = rawData.Xtrn;
+mdmlData.I = [Isim; Idis];
+mdmlData.y = [ones(size(Isim, 1), 1); -ones(size(Idis, 1), 1)];
+
+% Randomize the order of data points
+J = randperm(length(mdmlData.y));
+mdmlData.I = mdmlData.I(J, :);
+mdmlData.y = mdmlData.y(J);
+
+%%% Perform MDML using hinge loss + Frobenius divergence
+settings.loss = 'hinge';
+settings.breg = 'frobenius';
+settings.eta = 0.5;
+settings.rho = 0.1;
+mdmlResults = mdml(mdmlData, settings);
+
+% Project the data into the new low-dimensional space, whose basis is given 
+% by the two largest eigenvalues.
+Mhalf = mdmlResults.V(:, [10, 9]) * diag(sqrt(mdmlResults.E([10, 9])));
+XptrnFH = rawData.Xtrn * Mhalf;
+
+% Compute the kNN error of this approach 
+ypred = kNNClassify(Mhalf, rawData.Xtrn, rawData.ytrn, rawData.Xtst, K);
+err = 1 - mean(ypred == rawData.ytst);        
+fprintf('Test error on 3D data set (F + H) = %g%%.\n\n', err*100);
+
+%%% Perform MDML using logistic loss + von Neumann divergence
+settings.loss = 'logistic';    
+settings.breg = 'vonneumann'; 
+settings.eta = 0.5;
+settings.rho = 0.05;
+mdmlResults = mdml(mdmlData, settings);
+
+% Now project the training data and the test data into a new space,
+% whose basis is given by the two largest eigenvalues.
+Mhalf = mdmlResults.V(:, [10, 9]) * diag(sqrt(mdmlResults.E([10, 9])));
+XptrnVNL = rawData.Xtrn * Mhalf; 
+
+% Compute the kNN error of this approach 
+ypred = kNNClassify(Mhalf, rawData.Xtrn, rawData.ytrn, rawData.Xtst, K);
+err = 1 - mean(ypred == rawData.ytst);        
+fprintf('Test error on 3D data set (VN + L) = %g%%.\n\n', err*100);
+
+% Plot
+h = subplot(1, 3, 1);
+plotDataSet(h, rawData.Xtrn(:, rawData.I), rawData.ytrn, '2d (Orig) + 8d (Garbage)');
+h = subplot(1, 3, 2);                            
+plotDataSet(h, XptrnFH, rawData.ytrn, 'Projected Data (F + H)');
+h = subplot(1, 3, 3);
+plotDataSet(h, XptrnVNL, rawData.ytrn, 'Projected Data (VN + L)');
+##### SOURCE END #####
+--></body></html>
