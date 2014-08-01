@@ -1,0 +1,3 @@
+#condor_submit condorEntropyAD.condor
+condor_submit condorEntropyCN.condor
+condor_submit condorEntropyMCI.condor

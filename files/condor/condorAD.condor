@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor/bashAD.sh
+InitialDir = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor
+Notification = Never
+getenv = True
+Log = /sonigroup/summer2014/agilchr1/condorOut/AD/patient$(Process).log
+Error = /sonigroup/summer2014/agilchr1/condorOut/AD/patient$(Process).err
+Output = /sonigroup/summer2014/agilchr1/condorOut/AD/patient$(Process).out
+requirements = (Memory > 1000) && (SlotID == 3)
+
+Arguments = $(Process)
+queue 92

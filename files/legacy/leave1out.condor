@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /acmi/chris13/scripts/leave1outBash.sh
+InitialDir = /acmi/scripts
+Notification = Never
+getenv = True
+Log = /acmi/chris13/condorout/boofold$(($(Process)+9)).log
+Error = /acmi/chris13/condorout/boofold$(($(Process)+9)).err
+Output = /acmi/chris13/condorout/boofold$(($(Process)+9)).out
+requirements = SlotID == 8
+
+Arguments = $(Process)
+queue 10

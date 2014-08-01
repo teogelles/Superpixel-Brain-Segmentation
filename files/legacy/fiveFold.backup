@@ -1,0 +1,23 @@
+Universe = vanilla
+Executable = /acmi/chris13/scripts/fiveFoldBash.sh
+InitialDir = /acmi/scripts
+Notification = Never
+getenv = True
+Log = /acmi/chris13/condorout/fold$(Process).log
+Error = /acmi/chris13/condorout/fold$(Process).err
+Output = /acmi/chris13/condorout/fold$(Process).out
+
+Arguments = 1
+queue
+
+Arguments = 2
+queue
+
+Arguments = 3
+queue
+
+Arguments = 4
+queue
+
+Arguments = 5
+queue

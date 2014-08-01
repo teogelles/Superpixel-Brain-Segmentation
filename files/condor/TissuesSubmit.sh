@@ -1,0 +1,3 @@
+condor_submit condorTissuesAD.condor
+condor_submit condorTissuesCN.condor
+condor_submit condorTissuesMCI.condor

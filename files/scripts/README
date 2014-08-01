@@ -1,0 +1,44 @@
+Swarthmore Summer 2014 CS Research
+Prof. Ameet Soni
+Students: Teo Gelles & Andrew Gilchrist-Scott
+Last Updated: 07/28/2014
+
+
+Directory: /sonigroup/summer2014/tgelles1/brainseg2014/scripts/scripts
+
+This directory contains several scripts which were useful for our project,
+but not part of the main pipeline and are predominantly self-contained.
+
+Directory Listing:
+
+./CSVconcat.py - 
+
+./addClass.py - 
+
+./adjustImage.m - 
+
+./checkCSVClassID.py -
+
+./correlateFeatures.m -
+
+./getADNITrainingList. -
+
+./getCRSFeatures.py -
+
+./makeSubDataset.py -
+
+./normalizeCSV.m -
+
+./normalizeWMLImage.m -
+
+./pyscript.py -
+
+./separateBoundaries.m -
+
+./skullStrip.m -
+
+./skullStrip.py -
+
+./testKFact.m -
+
+./vlfeat_slic_script.m -

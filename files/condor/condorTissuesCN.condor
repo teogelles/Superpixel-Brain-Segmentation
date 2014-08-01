@@ -1,0 +1,26 @@
+Universe = vanilla
+<<<<<<< HEAD
+Executable = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor/bashTissuesCN.sh
+InitialDir = /sonigroup/summer2014/agilchr1/brainseg2014/scripts/condor
+Notification = Never
+getenv = True
+Log = /sonigroup/summer2014/agilchr1/condorOut/TissuesCN/patient$(Process).log
+Error = /sonigroup/summer2014/agilchr1/condorOut/TissuesCN/patient$(Process).err
+Output = /sonigroup/summer2014/agilchr1/condorOut/TissuesCN/patient$(Process).out
+requirements = (Memory > 15000) && (SlotID == 2)
+
+Arguments = $(Process)
+queue 102
+=======
+Executable = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor/bashTissuesCN.sh
+InitialDir = /acmi/summer2014/agilchr1/brainseg2014/scripts/condor
+Notification = Never
+getenv = True
+Log = /acmi/summer2014/agilchr1/condorOut/TissuesCN/patient$(Process).log
+Error = /acmi/summer2014/agilchr1/condorOut/TissuesCN/patient$(Process).err
+Output = /acmi/summer2014/agilchr1/condorOut/TissuesCN/patient$(Process).out
+requirements = (Memory > 9000) && (SlotID == 3)
+
+Arguments = $(Process)
+queue 10
+>>>>>>> 7a57d238b26608723433b6d424c4617f975d284e
