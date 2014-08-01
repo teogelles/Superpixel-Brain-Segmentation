@@ -9,7 +9,7 @@ function makePatientVectors(direc,numSV)
         numSV = 125;
     end
     
-    alterCols = true;
+    alterCols = false;
     if alterCols
         cols = [7:10 12 14];
         numFeat = length(cols);
@@ -17,7 +17,12 @@ function makePatientVectors(direc,numSV)
         numFeat = 18;
     end
     
-    types = {'AD','MCI','CN'};
+    doMCI = false;
+    if doMCI
+        types = {'AD','MCI','CN'};
+    else
+        types = {'AD','CN'};
+    end
     
     % overallocate then we'll shrink
     total = zeros(92+203+102,15+numSV*numFeat);
@@ -25,7 +30,9 @@ function makePatientVectors(direc,numSV)
     
     col_i = 0;
     for type_i = 1:length(types)
-        for num = 1:205
+        for num = 1:90
+            % briefly changing this to 90 so we get equal parts of
+            % all data
             % We know that there are fewer patients than this, but
             % we don't really care since we check all files to see
             % if they exist
@@ -81,8 +88,23 @@ function makePatientVectors(direc,numSV)
     total = total(1:col_i,:);
     IDs = IDs(1:col_i,:);
     
-    savefilename = strcat(direc,'IntensityAllPat.csv');
-    savegroupname = strcat(direc,'IntensityAllPat_groups.csv');
+    savefilename = strcat(direc,'EqAllPat.csv');
+    savegroupname = strcat(direc,'EqAllPat_groups.csv');
+    
+    if alterCols
+        savefilename = strcat(direc,'EqIntensityAllPat.csv');
+        savegroupname = strcat(direc,'EqIntensityAllPat_groups.csv');
+    end
+    
+    if ~doMCI
+        if alterCols
+            savefilename = strcat(direc,'IntensityADCN.csv');
+            savegroupname = strcat(direc,'IntensityADCN_groups.csv');
+        else 
+            savefilename = strcat(direc,'EqADCN.csv');
+            savegroupname = strcat(direc,'EqADCN_groups.csv');
+        end
+    end
     csvwrite(savefilename,total);
     csvwrite(savegroupname,IDs);
 end

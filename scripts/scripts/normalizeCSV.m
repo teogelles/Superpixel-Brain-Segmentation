@@ -13,9 +13,9 @@ function normalizeCSV(direcNum, cols)
     debug = false;
     
     filebase = strcat('/scratch/tgelles1/summer2014/slicExact', ...
-                      num2str(direcNum), '/features/');
+                      num2str(direcNum), '/features/CSV/');
     savefilebase = ['/scratch/tgelles1/summer2014/slicExact', num2str(direcNum), '/features/' ...
-                    'CSV_NORM/'];
+                    'CSV_Changed/'];
     
     if ~exist(savefilebase,'dir')
         mkdir(savefilebase);
@@ -56,7 +56,7 @@ function newSV = processSV(superVoxels,cols)
 %   newSV = removeBackgroundSV(superVoxels);
     newSV = normalizeXYZ(superVoxels);
     % keep only wanted columns
-    % newSV = newSV(:,cols);
+    newSV = newSV(:,cols);
 end
 
 function newSV = normalizeXYZ(newSV)
