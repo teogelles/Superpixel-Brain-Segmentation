@@ -57,6 +57,7 @@ for (i=1:k),
    %evaluate model 
    XT = X(test_start:test_end, :);
    yT =  y(test_start:test_end);
+   
    pred(test_start:test_end) = KNN(yt, Xt, sqrtm(M), knn_size, XT); 
 end
 acc = sum(pred==y)/n;

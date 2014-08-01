@@ -55,22 +55,18 @@ function accuracy = brainBlockSVM(fileName, groupName, numFolds)
                 fprintf('%g %g %g (best c=%g, g=%g, rate=%g)\n', log2c, log2g, cv, bestc, bestg, bestcv);
             end
         end
-        
+
         cmd = ['-c ', num2str(bestc), ' -g ', num2str(bestg), '-t 2'];
-        model = svmtrain(trainID,trainID,cmd);
+        model = svmtrain(trainID, train, cmd);
+        
         [predictions, acc, probs] = svmpredict(testID, test, ...
                                                model);
         
-        % [predictions, acc, probs] = svmpredict(testID, test, ...
-        %                                        bestcv);
-        
-        disp([predictions, testID]);        
+        %        disp([predictions, testID]);        
         totalAcc(fold) = acc(1);
-        
-        break;
     end
     
-    disp('\n');
+    fprintf('\n');
 
     accuracy = mean(totalAcc);
     maxaccuracy = max(totalAcc);
