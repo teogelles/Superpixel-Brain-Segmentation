@@ -14,7 +14,7 @@ imaging research over the summer.  More general resources are located in
 
 Directory Listing:
 
-./scripts - Matlab scripts for tissue segmentation processing
+./files - Matlab scripts for tissue segmentation processing
 
 ./UGM - MATLAB library for doing some of the primary functionality of
        our main code. This is the code that we have edited (somewhat)
