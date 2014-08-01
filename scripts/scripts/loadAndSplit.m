@@ -8,21 +8,27 @@ function [train trainID test testID] = loadAndSplit(filename, ...
 %   labels of the data points' group
 % fold = number of the fold, must be <= numFolds
 % numFolds = number of total folds that will be done    
-% Note that this function assumes the data is orgainized,
-% i.e. group labels are monotonically non-decreasing
     
     totalVectors = csvread(filename);
     totalIDs = csvread(groupname);
     
+    % Make sure that the data is sorted so that we can easily
+    % choose the right proportion of data we can take from each of
+    % the seperate groups
+    if ~issorted(totalIDs)
+        [totalIDs origOrder] = sort(totalIDs);
+        totalVectors = totalVectors(origOrder,:);
+    end
+        
     [train trainID test testID] = ...
-        getTrainingAndTesting(totalVectors,totalIDs,fold,numFolds)
+        getTrainingAndTesting(totalVectors,totalIDs,fold,numFolds);
     
 end
 
 function [train trainID test testID] = ...
         getTrainingAndTesting(totalVectors,totalIDs,fold,numFolds)
     differentGroups = unique(totalIDs);
-    numGroups = length(differentGroups)
+    numGroups = length(differentGroups);
     
     numOfEach = zeros(numGroups,1);
     numTotal = size(totalVectors,1);
