@@ -9,9 +9,9 @@ rand('seed',1);
 % Load data 
 
 filename = ['/scratch/tgelles1/summer2014/slicExact125/features/' ...
-            'AllPat.csv'];
+            'EqIntensityADCN.csv'];
 groupname = ['/scratch/tgelles1/summer2014/slicExact125/features/' ...
-             'AllPat_groups.csv'];
+             'EqIntensityADCN_groups.csv'];
 [xTr yTr xTe yTe] = loadAndSplit(filename,groupname,1,3);
 %have to change them from nxd to dxn
 xTr = xTr(2:4:end,:)';

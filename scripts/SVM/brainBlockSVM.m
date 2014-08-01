@@ -36,6 +36,7 @@ function accuracy = brainBlockSVM(fileName, groupName, numFolds)
                                                model);
         
         totalAcc(fold) = acc(1);
+        disp([predictions testID]);
     end
     
     accuracy = mean(totalAcc);
@@ -45,9 +46,9 @@ end
 
 function [train trainID test testID] = ...
         getTrainingAndTesting(brainVectors,brainIDs,fold,numFolds)
-    numAD = length(find(brainIDs == 0));
-    numMCI = length(find(brainIDs == 1));
-    numCN = length(find(brainIDs == 2));
+    numAD = length(find(brainIDs == 1));
+    numMCI = length(find(brainIDs == 2));
+    numCN = length(find(brainIDs == 3));
     numBrains = numAD + numMCI + numCN;
     
     %upper and lower fold ratios
