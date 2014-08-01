@@ -23,6 +23,17 @@ function accuracy = brainBlockSVM(fileName, groupName, numFolds)
     end
     
     brainVectors = csvread(fileName);
+    
+    % These lines make sure that the data is normalized such that
+    % each column is on a range of 0 to 1
+    brainVectors = (brainVectors - repmat(min(brainVectors,[],1), ...
+                           size(brainVectors,1),1))*spdiags(1./ ...
+                                                      (max(brainVectors,[],1)-min(brainVectors,[],1))',0,size(brainVectors,2),size(brainVectors,2));
+    brainVectors = brainVectors(:,all(~isnan(brainVectors)));
+    
+    % disp(brainVectors(:,1:15))
+    % pause;
+
     brainIDs = csvread(groupName);
     
     totalAcc = zeros(numFolds,1);
@@ -33,18 +44,19 @@ function accuracy = brainBlockSVM(fileName, groupName, numFolds)
         %        model = svmtrain(trainID, train);
 
         bestcv = 0;
-        for log2c = -1:3,
-            for log2g = -4:1,
-                cmd = ['-v 5 -c ', num2str(2^log2c), ' -g ', num2str(2^log2g)];
+        for log2c = -1:10,
+            for log2g = -4:-4,
+                cmd = ['-v 5 -c ', num2str(10^log2c), ' -g ', ...
+                       num2str(2^log2g), ' -t 2'];
                 cv = svmtrain(trainID, train, cmd);
-                if (cv >= bestcv),
-                    bestcv = cv; bestc = 2^log2c; bestg = 2^log2g;
+                if (cv > bestcv),
+                    bestcv = cv; bestc = 10^log2c; bestg = 2^log2g;
                 end
                 fprintf('%g %g %g (best c=%g, g=%g, rate=%g)\n', log2c, log2g, cv, bestc, bestg, bestcv);
             end
         end
-        
-        cmd = ['-c ', num2str(bestc), ' -g ', num2str(bestg)];
+
+        cmd = ['-c ', num2str(bestc), ' -g ', num2str(bestg), '-t 2'];
         model = svmtrain(trainID, train, cmd);
         
         [predictions, acc, probs] = svmpredict(testID, test, ...

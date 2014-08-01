@@ -1,15 +1,16 @@
-function makePatientVectors(direc,numSV)
+function makePatientVectors(direc,numSV,alterCols,doMCI,equalAmounts)
 % This is a simple matlab script that makes a matrix that has every
 % patient as it's own vector with all the meta informaiton and the
 % feature information from every SV
 % @param - direc = directory where all the ANDI files that are to
 % be concatenated exist
+% @param - numSV = number of supervoxels in the images
+% @param - alterCols = 
     
     if ~exist('numSV','var')
         numSV = 125;
     end
     
-    alterCols = true;
     if alterCols
         cols = [7:10 12 14];
         numFeat = length(cols);
@@ -17,7 +18,11 @@ function makePatientVectors(direc,numSV)
         numFeat = 18;
     end
     
-    types = {'AD','MCI','CN'};
+    if doMCI
+        types = {'AD','MCI','CN'};
+    else
+        types = {'AD','CN'};
+    end
     
     % overallocate then we'll shrink
     total = zeros(92+203+102,15+numSV*numFeat);
@@ -25,7 +30,15 @@ function makePatientVectors(direc,numSV)
     
     col_i = 0;
     for type_i = 1:length(types)
-        for num = 1:205
+        if equalAmounts
+            numEnd = 90;
+        else
+            numEnd = 205;
+        end
+        
+        for num = 1:numEnd
+            % briefly changing this to 90 so we get equal parts of
+            % all data
             % We know that there are fewer patients than this, but
             % we don't really care since we check all files to see
             % if they exist
@@ -81,8 +94,43 @@ function makePatientVectors(direc,numSV)
     total = total(1:col_i,:);
     IDs = IDs(1:col_i,:);
     
-    savefilename = strcat(direc,'IntensityAllPat.csv');
-    savegroupname = strcat(direc,'IntensityAllPat_groups.csv');
+    total = normalizeData(total);
+    
+    savefilename = direc;
+    savegroupname = direc;
+    
+    if equalAmounts
+        savefilename = strcat(savefilename,'Eq');
+        savegroupname = strcat(savegroupname,'Eq');
+    end
+    
+    if alterCols
+        savefilename = strcat(savefilename,'Intensity');
+        savegroupname = strcat(savegroupname,'Intensity');
+    end
+    
+    if doMCI
+        savefilename = strcat(savefilename,'AllPat');
+        savegroupname = strcat(savegroupname,'AllPat');
+    else
+        savefilename = strcat(savefilename,'ADCN');
+        savegroupname = strcat(savegroupname,'ADCN');
+    end
+    
+    fprintf('\nSaving files in:\n');
+    savefilename = strcat(savefilename,'.csv')
+    savegroupname = strcat(savegroupname,'_groups.csv')
+    
     csvwrite(savefilename,total);
     csvwrite(savegroupname,IDs);
+end
+
+function total = normalizeData(total)
+   
+        total = (total - repmat(min(total,[],1), ...
+                           size(total,1),1))*spdiags(1./ ...
+                                                      (max(total, ...
+                                                          [],1)-min(total,[],1))',0,size(total,2),size(total,2));
+        goodCols = all(~isnan(total));
+        total = total(:,goodCols);
 end
