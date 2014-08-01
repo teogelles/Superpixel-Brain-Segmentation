@@ -6,7 +6,7 @@
 % and getSLICFeatures.
 
 function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
-                                shapeParam, numIters)
+                                shapeParam, numIters, saveDir)
     % slicFeatures - Returns the list of features obtained from
     % getSLICFeatures()
     %
@@ -49,8 +49,11 @@ function slicFeatures = runSLICExact(imageType, imageNum, numSuperVoxels, ...
     saveFiles = true;
          
     % base directory
-    saveDir = strcat('/scratch/tgelles1/summer2014/slicExact', ...
-                     num2str(numSuperVoxels), '/');
+    if ~exist('saveDir','var')
+        saveDir = strcat('/scratch/tgelles1/summer2014/slicExact', ...
+                         num2str(numSuperVoxels), '/');
+    end
+    
     if ~exist(saveDir,'dir')
         mkdir(saveDir);
     end

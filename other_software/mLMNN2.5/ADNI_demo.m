@@ -8,17 +8,21 @@ clc;
 rand('seed',1);
 % Load data 
 
-filename = ['/scratch/tgelles1/summer2014/slicExact504/features/' ...
-            'CSV_NORM/organized_med.csv'];
-groupname = ['/scratch/tgelles1/summer2014/slicExact504/features/' ...
-             'CSV_NORM/med_groups.csv'];
+filename = ['/scratch/tgelles1/summer2014/slicExact125/features/' ...
+            'AllPat.csv'];
+groupname = ['/scratch/tgelles1/summer2014/slicExact125/features/' ...
+             'AllPat_groups.csv'];
 [xTr yTr xTe yTe] = loadAndSplit(filename,groupname,1,3);
 %have to change them from nxd to dxn
-xTr = xTr';
-yTr = yTr';
-xTe = xTe';
-yTe = yTe';
+xTr = xTr(2:4:end,:)';
+yTr = yTr(2:4:end,:)';
+xTe = xTe(2:4:end,:)';
+yTe = yTe(2:4:end,:)';
 
+size(xTr)
+size(yTr)
+size(xTe)
+size(yTe)
 
 % KNN classification error before metric learning  
 errRAW=knncl([],xTr, yTr,xTe,yTe,1);fprintf('\n');
