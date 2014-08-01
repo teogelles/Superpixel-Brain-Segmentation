@@ -8,7 +8,7 @@
 % every image in IBSR
 
 %Matlab paths that need to be added to run:
-%addpath(genpath('/sonigroup/summer2014/USER/brainseg2014/UGM'))
+%addpath(genpath('/sonigroup/summer2014/tgelles1/brainseg2014/other_software/UGM'))
 %addpath(genpath('/sonigroup/fmri/spm8'))
 
 

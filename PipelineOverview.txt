@@ -1,0 +1,86 @@
+Research Pipeline Overview
+Summer 2014
+Teo Gelles & Andrew Gilchrist-Scott
+Prof. Ameet Soni
+
+Last Updated: 08/01/2014
+
+Directory: /sonigroup/summer2014/tgelles1/brainseg2014/files/
+
+
+
+Our project pipeline works as follows:
+
+1)  We start with a dataset consisting of MRI images in the .nii format,
+    located in /sonigroup/fmri/AD_T1, /sonigroup/fmri/CN_T1, and
+    /sonigroup/fmri/MCI_T1, consisting of 92, 102, and 203 images
+    respectively.  These are all images from the ADNI database.  We
+    also have another dataset from the IBSR database located in
+    /sonigroup/fmri/IBSR_nifti_stripped/
+
+2)  We use a CRF PGM, largely copies from Chris Magnano's work last summer,
+    to learn and create tissue segmentations for the images.  The CRF learns
+    on the IBSR dataset, and places the ADNI tissue segmentations in
+    /sonigroup/summer2014/ADNI_tissues/
+
+3)  We skullstrip the images, using our script ./files/scripts/skullstrip.py,
+    which is a wrapper around the freesurfer software package installed on
+    our computers, available at
+    https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall
+    The skullstripped images are placed in
+    /scratch/tgelles1/summer2014/ADNI_stripped/
+
+4)  The images come with a substantial black margin around the brains,
+    which is detrimental to the rest of our pipeline.  So, we use the
+    cropBlack.m script in ./files/SLIC/cropBlack.m to remove said margin
+    and place the cropped files in
+    /scratch/tgelles1/summer2014/ADNI_cropped/
+
+5)  We perform supervoxelation on the cropped images, using the SLIC algorithm
+    which we implemented for the 3D .nii file format.  Classically, the SLIC
+    algorithm does not use the exact number of supervoxels specified as input,
+    instead it chooses a close value that better fits the size of the relevant
+    brain.  However, this is problematic for most statistical analysis, so
+    we slightly modified it to use precise numbers of supervoxels for all brains.
+    Ultimately, we decided to initially distribute the supervoxels in a uniform
+    cube throughout the images.  To modularize the acts of generating the supervoxels
+    and getting statistical features from the supervoxels, we had to save multiples
+    data types for each brain, namely the supervoxel labelling for each image
+    ("labels" or "slic"), a more visual representation of the labelling ("border"),
+    information about the supervoxel centers ("centerinfo"), the amount of image
+    cropped in step 4 ("cropoffset"), and the original image at the resolution
+    chose (almost always full resolution) ("x"). We have many different output
+    directories for our supervoxelations depending on the exact calls made, as follows:
+
+    Classical SLIC with varying numbers of inputs and algorithm-chosen number
+    of supervoxels:
+    /scratch/tgelles1/summer2014/slic/
+    Naming Convention: dataType-brainType-numSV-shapeParam-resolution-numIterations.nii
+					 
+    SLIC with supervoxels arranged in a 5x5x5 grid regardless of image size:
+    /scratch/tgelles1/summer2014/slicExact125
+    Naming Convention: dataType-brainType-numSV-shapeParam--numIterations.nii
+    	   	       (resolution is always 1)
+
+    Same as above, with supervoxels in 4x5x6 grid:
+    /scratch/tgelles1/summer2014/slicExact120
+
+    Same as above, with supervoxels in 5x6x7 grid:
+    /scratch/tgelles1/summer2014/slicExact210
+
+    Smae as above, with supervoxels in a 6x7x8 grid:
+    /scratch/tgelles1/summer2014/slicExact504
+
+6)  Integrated with the supervoxelation process is the generating of statistical
+    features, using ./files/SLIC/getSLICFeatures.m.  These features are
+    saved within the features/ subdirectory of the supervoxelated images themselves,
+    for examples /scratch/tgelles1/summer2014/slicExact125/features/.  They
+    are in the csv format.  Features in a format to send to Ameet Soni's
+    colleague Sriraam Natarajan are saved as .txt files in a custom format.
+
+7)  The final step in the pipeline is to determine whether the generated
+    features correlate with Alzheimer's prediction.  This step remains ongoing,
+    using multiple different analysis techniques.  The relevant code is contained
+    in either the ./files directory if we developed it ourselves or in
+    ./other_software if we used a ready-made package. 
+    
