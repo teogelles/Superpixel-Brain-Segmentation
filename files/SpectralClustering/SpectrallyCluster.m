@@ -1,7 +1,7 @@
 % We've changed this file to screw around with the segmentation,
 % and now, it's our file! Muah ha ha ha ha!
 
-function SpectrallyCluster(FileName,k,Neighbors,sigma)
+function SpectrallyCluster(FileName,groupfilename,k,Neighbors,sigma)
 
     global debug;
     dState = debug;
@@ -92,6 +92,24 @@ function SpectrallyCluster(FileName,k,Neighbors,sigma)
     %     ddisp('We gots ourselves some nondeterministic clusters by D');
     % end
 
+    groups = csvread(groupfilename);
+    
+    % Time to see if any of our work was good
+    accuracy = mean(D(:,1) == groups);
+    fprintf('Accuracy is %f.\n',accuracy);
+    
+    % Let's make a confusion matrix to see if our results mean anything
+    conf = zeros(k);
+    for i = 1:k
+        for j = 1:k
+            conf(i,j) = sum((D(:,1) == i) .* (groups == j));
+        end
+    end
+    
+    disp(conf)
+    
+    
+    
     if saveData
         results = zeros(size(Data',1),size(Data',2) + 1);
         results(:,1) = D;
